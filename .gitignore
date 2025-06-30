@@ -1,0 +1,39 @@
+# React (frontend-app)
+frontend-app/node_modules/
+frontend-app/build/
+frontend-app/.env
+frontend-app/.env.local
+frontend-app/.env.*.local
+
+# .NET (backend-app)
+backend-app/bin/
+backend-app/obj/
+backend-app/*.user
+backend-app/*.vspscc
+backend-app/*.vssscc
+backend-app/*.suo
+backend-app/*.pdb
+backend-app/*.cache
+backend-app/*.log
+backend-app/appsettings.json
+
+# Visual Studio / Editor files
+.vscode/
+.vs/
+*.code-workspace
+*.sln
+*.user
+*.userosscache
+*.suo
+*.tmp
+*.temp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
