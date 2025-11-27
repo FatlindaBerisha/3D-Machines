@@ -7,6 +7,14 @@ html, body {
   overflow-x: hidden;
   font-family: 'Exo', sans-serif;
 }
+body.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+}
 
 /* Main Wrapper */
 .auth-wrapper {
@@ -21,6 +29,11 @@ html, body {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   min-height: 680px;
   box-sizing: border-box;
+}
+@media (max-width: 768px) {
+  .terms-container {
+    padding: 120px 30px 80px 30px;
+  }
 }
 
 /* Left Panel */
@@ -415,4 +428,86 @@ input:-webkit-autofill {
     border-radius: 0 0 20px 20px;
     padding: 30px 20px;
   }
+}
+
+/* Forgot Password */
+.forgot-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Form Box */
+.forgot-form {
+  width: 100%;
+  max-width: 500px;
+  background: #fff;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  padding: 35px 40px;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+/* Forgot Title */
+.forgot-title {
+  text-align: center;
+  margin-bottom: 28px;
+  font-size: 26px;
+  font-weight: 700;
+  font-family: 'Orbitron', sans-serif;
+  color: #345ea0;
+  letter-spacing: 0.03em;
+}
+
+/* Forgot Description */
+.forgot-description {
+  font-size: 15px;
+  font-weight: 300;
+  text-align: center;
+  margin-top: -10px;
+  margin-bottom: 25px;
+  line-height: 1.6;
+  padding: 0 10px;
+  opacity: 0.9;
+}
+
+/* Button */
+.forgot-btn {
+  width: 100%;
+  padding: 14px 0;
+  background: #4374ba;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.25s ease;
+  margin-top: 10px;
+  font-weight: 600;
+}
+.forgot-btn:hover:not(:disabled) {
+  background: #345ea0;
+}
+
+/* Back to login */
+.back-icon {
+  font-size: 16px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.forgot-toggle-text {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.forgot-toggle-btn {
+  color: #4374ba;
+  text-decoration: none;
+  font-weight: 600;
+}
+.forgot-toggle-btn:hover,
+.forgot-toggle-btn:focus {
+  text-decoration: underline;
 }

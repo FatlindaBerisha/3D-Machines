@@ -137,7 +137,8 @@
 
 .edit-button,
 .submit-button,
-.cancel-button {
+.cancel-button,
+.create-button {
   padding: 6px 14px;
   font-size: 0.9rem;
   border-radius: 6px;
@@ -164,6 +165,12 @@
   background-color: #d3d3d3;
   color: #333;
 }
+.create-button {
+  display: block;
+  margin-left: auto;
+  background-color: #28a745;
+  color: white;
+}
 .edit-button:hover {
   background-color: #3b4fa7;
   box-shadow: 0 5px 10px rgba(59, 79, 167, 0.4);
@@ -177,6 +184,11 @@
 .cancel-button:hover {
   background-color: #bfbfbf;
   box-shadow: 0 5px 10px rgba(191, 191, 191, 0.4);
+  transform: translateY(-3px);
+}
+.create-button:hover {
+  background-color: #218838;
+  box-shadow: 0 5px 10px rgba(33, 136, 56, 0.4);
   transform: translateY(-3px);
 }
 
@@ -369,17 +381,247 @@
   background-color: #d13438;
   transition: background-color 0.3s ease;
 }
-
 .toast-confirmation button.confirm-yes:hover {
   background-color: #b92b2e;
 }
-
 .toast-confirmation button.confirm-no {
   background-color: #d3d3d3;
   color: #333;
   transition: background-color 0.3s ease;
 }
-
 .toast-confirmation button.confirm-no:hover {
   background-color: #a9a9a9;
+}
+
+/* Delete Account Button */
+.delete-account-btn {
+  margin-top: 20px;
+  background: #e63946;
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.delete-account-btn:hover {
+  background: #b82734;
+}
+
+/* Modal Background */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* Modal Box */
+.modal-box {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  width: 350px;
+  text-align: center;
+  animation: fadeIn 0.25s ease;
+}
+
+.modal-box h3 {
+  margin-bottom: 10px;
+}
+
+.modal-box p {
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Modal Buttons */
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.cancel-delete-btn,
+.confirm-delete-btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+}
+
+.cancel-delete-btn {
+  background: #ccc;
+}
+
+.cancel-delete-btn:hover {
+  background: #b3b3b3;
+}
+
+.confirm-delete-btn {
+  background: #e63946;
+  color: white;
+}
+
+.confirm-delete-btn:hover {
+  background: #b82734;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+/* STATIC PASSWORD ROW */
+.password-static-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 16px 20px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 25px;
+}
+
+.password-column {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.static-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.password-dots {
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: #111827;
+}
+
+.security-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #22c55e;
+  font-size: 14px;
+}
+
+.security-status i {
+  font-size: 16px;
+}
+
+.edit-password-btn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.edit-password-btn:hover {
+  background: #e5e7eb;
+}
+
+/* CANCEL EDIT */
+.cancel-edit-btn {
+  margin-top: 10px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Show password icon button */
+.show-password-btn {
+  background: none;
+  border: none;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+/* -------------------- DELETE MODAL (Shopify Style) -------------------- */
+
+.shopify-modal {
+  background: #fff;
+  padding: 24px 28px;
+  width: 460px;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  animation: fadeIn 0.25s ease;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.modal-warning-box {
+  background: #ffe9e8;
+  border: 1px solid #ffb3af;
+  color: #a32822;
+  padding: 15px 14px;
+  border-radius: 10px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.modal-warning-box i {
+  font-size: 20px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.modal-input input {
+  padding: 12px 10px;
+}
+
+.modal-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.modal-back-btn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.modal-delete-btn {
+  background: #d82c20;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.modal-delete-btn:hover {
+  background: #b91c1c;
 }

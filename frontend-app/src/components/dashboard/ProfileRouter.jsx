@@ -10,6 +10,6 @@ export default function ProfileRouter() {
   } else if (role === 'user') {
     return <UserProfile />;
   } else {
-    return <div>Roli nuk është i njohur</div>;
+    return <div>Role isn't recognized</div>;
   }
 }

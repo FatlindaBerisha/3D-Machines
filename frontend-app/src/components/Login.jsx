@@ -1,110 +1,110 @@
-import React, { useState, useEffect, useContext  } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from "react-toastify";
 import { UserContext } from '../UserContext';
-import 'react-toastify/dist/ReactToastify.css';
+import api from "../utils/axiosClient";
 import './styles/Form.css';
 import logo from '../assets/logo.png';
 
 export default function LoginForm() {
   const { setUser } = useContext(UserContext);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
-    const role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+    document.body.classList.add("auth-page");
+    return () => document.body.classList.remove("auth-page");
+  }, []);
 
-    if (token) {
-      if (role === 'admin') {
-        navigate('/dashboard/admin', { replace: true });
-      } else {
-        navigate('/dashboard/user', { replace: true });
-      }
-    }
-  }, [navigate]);
-
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
-      toast.warning("Please fill in both email and password.", { className: 'login-toast-warning', bodyClassName: 'toast-body', });
+      toast.warning("Please fill in both fields.");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.warning("Please enter a valid email address.", { className: 'login-toast-warning', bodyClassName: 'toast-body', });
-      return;
-    }
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()\-_=+{}[\]|;:'",.<>/\\]).{8,}$/;
-    if (!passwordRegex.test(password)) {
-      toast.warning("Password must be minimum 8 characters, include uppercase, lowercase, number, and special character.", { className: 'login-toast-warning', bodyClassName: 'toast-body', });
+      toast.warning("Invalid email format.");
       return;
     }
 
     setLoading(true);
-    await delay(1500);
+    await delay(800);
 
     try {
-      const res = await fetch('https://localhost:7178/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }), });
+      const res = await api.post("/auth/login", { email, password });
 
-      if (!res.ok) {
-        switch (res.status) {
-          case 500:
-            toast.error('Server error (500). Please try again later.', { className: 'login-toast-error', bodyClassName: 'toast-body', });
-            break;
-          case 403:
-            toast.error('Access forbidden (403).', { className: 'login-toast-error', bodyClassName: 'toast-body', });
-            break;
-          case 401:
-            toast.warning('Unauthorized (401): Check your credentials.', { className: 'login-toast-warning', bodyClassName: 'toast-body', });
-            break;
-          default:
-            const errorText = await res.text();
-            toast.error(`Login failed: ${errorText || 'Unknown error'}`, { className: 'login-toast-error', bodyClassName: 'toast-body', });
-        }
-      } else {
-        const user = await res.json();
+      const data = res.data;
 
-        localStorage.clear();
-
-        localStorage.setItem('fullName', user.fullName);
-        localStorage.setItem('jwtToken', user.token);
-        localStorage.setItem('loggedIn', 'true');
-        const email = JSON.parse(atob(user.token.split('.')[1]))["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
-        localStorage.setItem('email', email);
-        localStorage.setItem('userRole', user.role);
-
-        setUser(user);
-
-        toast.success('Login successful! Redirecting...', { className: 'login-toast-success', bodyClassName: 'toast-body', autoClose: 1000,
-          onClose: () => {
-            if (user.role === 'admin') {
-              navigate('/dashboard/admin');
-            } else {
-              navigate('/dashboard/user');
-            }
-          }
-        });
+      if (!data?.token) {
+        toast.error("Invalid response from server.");
+        return;
       }
-    } catch (error) {
-      if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        toast.error('Network error: Cannot reach server. Please check your connection.', { className: 'login-toast-error', bodyClassName: 'toast-body', });
-      } else {
-        toast.error('Login failed. Please try again later.', { className: 'login-toast-error', bodyClassName: 'toast-body', });
+
+      localStorage.clear();
+
+      localStorage.setItem("jwtToken", data.token);
+      if (data.refreshToken) {
+        localStorage.setItem("refreshToken", data.refreshToken);
       }
+
+      let decodedEmail = "";
+      try {
+        const payload = JSON.parse(atob(data.token.split(".")[1]));
+        decodedEmail =
+          payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] ||
+          payload.email ||
+          payload.Email ||
+          "";
+      } catch {}
+
+      localStorage.setItem("fullName", data.fullName || "");
+      localStorage.setItem("userRole", data.role || "user");
+      localStorage.setItem("profession", data.profession || "");
+      localStorage.setItem("gender", data.gender || "");
+      localStorage.setItem("email", decodedEmail || email);
+      localStorage.setItem("loggedIn", "true");
+
+      const userObj = {
+        token: data.token,
+        refreshToken: data.refreshToken || null,
+        role: data.role || "user",
+        fullName: data.fullName || "",
+        profession: data.profession || "",
+        gender: data.gender || "",
+        email: decodedEmail || email,
+      };
+
+      setUser(userObj);
+
+      toast.success("Login successful!", {
+        autoClose: 900,
+        onClose: () => {
+          navigate(userObj.role === "admin" ? "/dashboard/admin" : "/dashboard/user");
+        },
+      });
+
+    } catch (err) {
+      let msg = err?.response?.data?.message || err?.response?.data || "Login failed.";
+
+      if (msg.toLowerCase().includes("email not verified")) {
+          toast.error("Your email is not verified. Please check your inbox.");
+          return;
+      }
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="auth-wrapper modern">
       <div className="left-panel">
@@ -121,7 +121,7 @@ export default function LoginForm() {
           <img src={logo} alt="Logo" className="logo-img" />
 
           <div className="input-group">
-            <input id="email" type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} placeholder=" " aria-label="Email" autoComplete="email"/>
+            <input id="email" type="text" name="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} placeholder=" " aria-label="Email" autoComplete="email"/>
             <label htmlFor="email">Email</label>
           </div>
           

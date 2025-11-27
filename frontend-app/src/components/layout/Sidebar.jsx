@@ -1,11 +1,22 @@
 import React, { useContext } from "react";
-import { NavLink } from "react-router-dom";
-import { FaTachometerAlt, FaPrint, FaFlask, FaHistory, FaUser, FaUsers } from "react-icons/fa";
+import { NavLink, useLocation } from "react-router-dom";
+import {
+  FaTachometerAlt,
+  FaPrint,
+  FaCut,
+  FaCog,
+  FaUsers,
+} from "react-icons/fa";
+import { FiChevronRight } from "react-icons/fi";
 import logo from "../../assets/logo.png";
 import { UserContext } from "../../UserContext";
 
 const Sidebar = ({ role }) => {
   const { user } = useContext(UserContext);
+  const location = useLocation();
+  const [open, setOpen] = React.useState(null);
+
+  const toggle = (title) => setOpen(open === title ? null : title);
 
   const capitalize = (str) =>
     str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
@@ -13,58 +24,98 @@ const Sidebar = ({ role }) => {
   const fullName = user?.fullName || "";
   const profession = user?.profession || "";
 
+  // USER SECTIONS
   const userSections = [
     {
       title: "",
       links: [
-        { name: "Dashboard", to: "/dashboard/user", icon: <FaTachometerAlt /> },
+        {
+          name: "Dashboard",
+          to: "/dashboard/user",
+          icon: <FaTachometerAlt />,
+        },
       ],
     },
     {
       title: "Printing",
+      icon: <FaPrint />,
+      dropdown: true,
       links: [
-        { name: "New Print", to: "/dashboard/user/new-print", icon: <FaPrint /> },
-        { name: "Print Log", to: "/dashboard/user/print-log", icon: <FaHistory /> },
+        { name: "New Print", to: "/dashboard/user/new-print" },
+        { name: "Print Log", to: "/dashboard/user/print-log" },
+        { name: "Project Files", to: "/dashboard/user/user-projects" },
       ],
     },
     {
-      title: "Materials",
+      title: "Cutting",
+      icon: <FaCut />,
+      dropdown: true,
       links: [
-        { name: "Filament", to: "/dashboard/user/filament", icon: <FaFlask /> },
+        { name: "New Cut", to: "/dashboard/user/new-cut" },
+        { name: "Cut Log", to: "/dashboard/user/cut-log" },
+        { name: "Cut Projects", to: "/dashboard/user/cut-projects" },
       ],
     },
     {
-      title: "User",
+      title: "Settings",
+      icon: <FaCog />,
+      dropdown: true,
       links: [
-        { name: "Profile", to: "/dashboard/user/profile", icon: <FaUser /> },
+        { name: "Profile", to: "/dashboard/user/profile" },
+        { name: "Security", to: "/dashboard/user/security" },
+        { name: "Preferences", to: "/dashboard/user/preferences" },
+        { name: "Notifications", to: "/dashboard/user/notifications" },
       ],
     },
   ];
 
+  // ADMIN SECTIONS
   const adminSections = [
     {
       title: "",
       links: [
-        { name: "Admin Dashboard", to: "/dashboard/admin", icon: <FaTachometerAlt /> },
+        {
+          name: "Admin Dashboard",
+          to: "/dashboard/admin",
+          icon: <FaTachometerAlt />,
+        },
       ],
     },
     {
       title: "Team",
-      links: [
-        { name: "Manage Users", to: "/dashboard/admin/users", icon: <FaUsers /> },
-      ],
+      icon: <FaUsers />,
+      dropdown: true,
+      links: [{ name: "Manage Users", to: "/dashboard/admin/users" }],
     },
     {
       title: "Printing Overview",
+      icon: <FaPrint />,
+      dropdown: true,
       links: [
-        { name: "Print Logs", to: "/dashboard/admin/print-logs", icon: <FaPrint /> },
-        { name: "Filament Manager", to: "/dashboard/admin/filaments", icon: <FaFlask /> },
+        { name: "Print Logs", to: "/dashboard/admin/print-logs" },
+        { name: "Filament Manager", to: "/dashboard/admin/filaments" },
+        { name: "Project Files", to: "/dashboard/admin/project-files" },
       ],
     },
     {
-      title: "Admin",
+      title: "Cutting Overview",
+      icon: <FaCut />,
+      dropdown: true,
       links: [
-        { name: "Profile", to: "/dashboard/admin/profile", icon: <FaUser /> },
+        { name: "Cut Logs", to: "/dashboard/admin/cut-logs" },
+        { name: "Material Manager", to: "/dashboard/admin/materials" },
+        { name: "Cut Files", to: "/dashboard/admin/cut-projects" },
+      ],
+    },
+    {
+      title: "Settings",
+      icon: <FaCog />,
+      dropdown: true,
+      links: [
+        { name: "Profile", to: "/dashboard/admin/profile" },
+        { name: "Security", to: "/dashboard/admin/security" },
+        { name: "Preferences", to: "/dashboard/admin/preferences" },
+        { name: "Notifications", to: "/dashboard/admin/notifications" },
       ],
     },
   ];
@@ -77,28 +128,68 @@ const Sidebar = ({ role }) => {
 
       <div className="sidebar-user-info">
         <div className="user-fullname">{fullName}</div>
-        <span className={`profession-${profession || 'default'}`}>
+        <span className={`profession-${profession || "default"}`}>
           {capitalize(profession)}
         </span>
       </div>
 
       <nav>
-        {sections.map((section, index) => (
-          <div key={index} className="sidebar-section">
-            {section.title && (
-              <div className="sidebar-section-title">{section.title}</div>
-            )}
-            {section.links.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                end={link.to === "/dashboard/admin" || link.to === "/dashboard/user"}
-                className={({ isActive }) => (isActive ? "active" : "")}
+        {sections.map((section, i) => (
+          <div key={i} className="sidebar-section">
+            {/* DASHBOARD LINK */}
+            {!section.dropdown &&
+              section.links.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end
+                  className={({ isActive }) =>
+                    isActive ? "top-link active" : "top-link"
+                  }
+                >
+                  {link.icon}
+                  <span>{link.name}</span>
+                </NavLink>
+              ))}
+
+            {/* DROPDOWN PARENT */}
+            {section.dropdown && (
+              <div
+                className={
+                  section.links.some((l) => location.pathname === l.to)
+                    ? "dropdown-parent parent-active"
+                    : "dropdown-parent"
+                }
+                onClick={() => toggle(section.title)}
               >
-                {link.icon}
-                <span className="link-text">{link.name}</span>
-              </NavLink>
-            ))}
+                <div className="dropdown-left">
+                  {section.icon}
+                  <span>{section.title}</span>
+                </div>
+                <FiChevronRight
+                  className={`dropdown-arrow ${
+                    open === section.title ? "open" : ""
+                  }`}
+                />
+              </div>
+            )}
+
+            {/* DROPDOWN CONTENT */}
+            {section.dropdown && open === section.title && (
+              <div className="dropdown-content">
+                {section.links.map((link) => (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    className={({ isActive }) =>
+                      isActive ? "dropdown-item active" : "dropdown-item"
+                    }
+                  >
+                    {link.name}
+                  </NavLink>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </nav>

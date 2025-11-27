@@ -8,6 +8,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import './styles/Form.css';
 import logo from '../assets/logo.png';
 
+import api from "../utils/axiosClient";
+
 export default function RegisterForm() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -15,16 +17,9 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem('loggedIn') === 'true';
-    const role = localStorage.getItem('userRole');
-    if (loggedIn) {
-      if (role === 'admin') {
-        navigate('/dashboard/admin', { replace: true });
-      } else {
-        navigate('/dashboard/user', { replace: true });
-      }
-    }
-  }, [navigate]);
+    document.body.classList.add("auth-page");
+    return () => document.body.classList.remove("auth-page");
+  }, []);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -33,16 +28,12 @@ export default function RegisterForm() {
     password: '',
     confirmPassword: '',
     profession: '',
-    gender: '',
-    agree: false
+    gender: ''
   });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handlePhoneChange = (value) => {
@@ -62,108 +53,63 @@ export default function RegisterForm() {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
     if (!nameRegex.test(fullName)) {
-      toast.error("Full name must be at least 3 letters and contain only letters/spaces.", {
-        className: 'login-toast-error',
-        bodyClassName: 'toast-body',
-      });
+      toast.error("Full name must be at least 3 letters.");
       setLoading(false);
       return;
     }
 
     if (!phone || phone.length < 8) {
-      toast.error("Please enter a valid phone number.", {
-        className: 'login-toast-error',
-        bodyClassName: 'toast-body',
-      });
+      toast.error("Please enter a valid phone number.");
       setLoading(false);
       return;
     }
 
     if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address.", {
-        className: 'login-toast-error',
-        bodyClassName: 'toast-body',
-      });
+      toast.error("Invalid email format.");
       setLoading(false);
       return;
     }
 
     if (!passwordRegex.test(password)) {
-      toast.error("Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.", {
-        className: 'login-toast-error',
-        bodyClassName: 'toast-body',
-      });
+      toast.error("Password must include uppercase, lowercase, number and symbol.");
       setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match.", {
-        className: 'login-toast-error',
-        bodyClassName: 'toast-body',
-      });
+      toast.error("Passwords do not match.");
       setLoading(false);
       return;
     }
 
-    if (!profession) {
-      toast.error("Please select your profession.", {
-        className: 'login-toast-error',
-        bodyClassName: 'toast-body',
-      });
-      setLoading(false);
-      return;
-    }
-
-    if (!gender) {
-      toast.error("Please select your gender.", {
-        className: 'login-toast-error',
-        bodyClassName: 'toast-body',
-      });
+    if (!profession || !gender) {
+      toast.error("Please complete all required fields.");
       setLoading(false);
       return;
     }
 
     try {
-      await delay(1500);
+      await delay(800);
 
-      const dataToSend = {
-        fullName: formData.fullName,
-        phone: '+' + formData.phone,
-        profession: formData.profession,
-        email: formData.email,
-        password: formData.password,
-        gender: formData.gender
+      const payload = {
+        fullName: fullName.trim(),
+        phone: "+" + phone,
+        profession,
+        email,
+        password,
+        gender
       };
 
-      const res = await fetch('https://localhost:7178/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend),
-      });
+      await api.post("/auth/register", payload);
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        toast.error(`Registration failed: ${errorText || 'Unknown error'}`, {
-          className: 'login-toast-error',
-          bodyClassName: 'toast-body',
-        });
-        setLoading(false);
-        return;
-      }
-
-      toast.success('Registration successful! Redirecting...', {
-        className: 'login-toast-success',
-        bodyClassName: 'toast-body',
-        autoClose: 1000,
-        onClose: () => navigate('/')
-      });
-
-    } catch (error) {
-      toast.error('Registration failed: ' + error.message, {
-        className: 'login-toast-error',
-        bodyClassName: 'toast-body',
-      });
+      toast.success("Registration successful! Please check your email to verify your account.");
+      navigate("/");
+    } catch (err) {
+      toast.error(
+        err?.response?.data ||
+        err?.response?.data?.message ||
+        "Registration failed."
+      );
     } finally {
       setLoading(false);
     }

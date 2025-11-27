@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import { MdSchool, MdEngineering, MdBrush, MdDelete } from "react-icons/md";
+import Pagination from "../Pagination";
+import api from "../../../utils/axiosClient"; // <-- IMPORTANT
+import "../../styles/Profile.css";
 
 function capitalizeFirstLetter(string) {
   if (!string) return "";
@@ -9,8 +12,10 @@ function capitalizeFirstLetter(string) {
 
 export default function ManageTeam() {
   const [teamMembers, setTeamMembers] = useState([]);
-  const token = localStorage.getItem("jwtToken");
   const toastIdRef = useRef(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const professionIcons = {
     student: <MdSchool style={{ color: "#3f51b5" }} />,
@@ -18,24 +23,25 @@ export default function ManageTeam() {
     designer: <MdBrush style={{ color: "#3f51b5" }} />,
   };
 
+  // ---------------------------
+  // FETCH TEAM MEMBERS
+  // ---------------------------
   useEffect(() => {
     async function fetchTeamMembers() {
       try {
-        const res = await fetch("https://localhost:7178/api/team", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch team members");
-
-        const data = await res.json();
-        setTeamMembers(data);
+        const res = await api.get("/team");
+        setTeamMembers(res.data);
       } catch (error) {
-        toast.error(error.message);
+        toast.error("Failed to fetch team members.");
       }
     }
 
     fetchTeamMembers();
-  }, [token]);
+  }, []);
 
+  // ---------------------------
+  // DELETE CONFIRMATION
+  // ---------------------------
   function showDeleteConfirm(memberId) {
     if (toastIdRef.current !== null) {
       toast.dismiss(toastIdRef.current);
@@ -77,22 +83,32 @@ export default function ManageTeam() {
     );
   }
 
+  // ---------------------------
+  // DELETE MEMBER
+  // ---------------------------
   async function actuallyDelete(memberId) {
     try {
-      const res = await fetch(`https://localhost:7178/api/team/${memberId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to delete team member");
-      }
+      await api.delete(`/team/${memberId}`);
+
       setTeamMembers((prev) => prev.filter((m) => m.id !== memberId));
+
       toast.success("Member deleted successfully.");
     } catch (error) {
-      toast.error(error.message);
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        "Failed to delete team member";
+      toast.error(msg);
     }
   }
+
+  // ---------------------------
+  // PAGINATION
+  // ---------------------------
+  const totalPages = Math.ceil(teamMembers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentMembers = teamMembers.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="team-container">
@@ -101,49 +117,57 @@ export default function ManageTeam() {
       {teamMembers.length === 0 ? (
         <p className="no-team-message">No team members found.</p>
       ) : (
-        <table className="team-table">
-          <thead>
-            <tr>
-              <th>Full Name</th>
-              <th>Email</th>
-              <th>Profession</th>
-              <th>Phone</th>
-              <th>Gender</th>
-              <th>Delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teamMembers.map((member) => (
-              <tr key={member.id}>
-                <td>{member.fullName}</td>
-                <td>{member.email}</td>
-                <td>
-                  <div className="profession-cell">
-                    {professionIcons[member.profession?.toLowerCase()] || null}
-                    {capitalizeFirstLetter(member.profession) || "-"}
-                  </div>
-                </td>
-                <td>{member.phone || "-"}</td>
-                <td>{capitalizeFirstLetter(member.gender) || "-"}</td>
-                <td>
-                  <button
-                    onClick={() => showDeleteConfirm(member.id)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: "1.3rem",
-                    }}
-                    aria-label="Delete member"
-                    title="Delete member"
-                  >
-                    <MdDelete />
-                  </button>
-                </td>
+        <>
+          <table className="team-table">
+            <thead>
+              <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Profession</th>
+                <th>Phone</th>
+                <th>Gender</th>
+                <th>Delete</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentMembers.map((member) => (
+                <tr key={member.id}>
+                  <td>{member.fullName}</td>
+                  <td>{member.email}</td>
+                  <td>
+                    <div className="profession-cell">
+                      {professionIcons[member.profession?.toLowerCase()] || null}
+                      {capitalizeFirstLetter(member.profession) || "-"}
+                    </div>
+                  </td>
+                  <td>{member.phone || "-"}</td>
+                  <td>{capitalizeFirstLetter(member.gender) || "-"}</td>
+                  <td>
+                    <button
+                      onClick={() => showDeleteConfirm(member.id)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "1.3rem",
+                      }}
+                      aria-label="Delete member"
+                      title="Delete member"
+                    >
+                      <MdDelete />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </>
       )}
     </div>
   );
