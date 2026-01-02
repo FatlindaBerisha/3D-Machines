@@ -4,6 +4,7 @@ import './i18n';
 import App from './App';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './index.css';
+import './i18n';
 
 window.addEventListener('storage', (e) => {
 	if (e.key === 'app-logout') {

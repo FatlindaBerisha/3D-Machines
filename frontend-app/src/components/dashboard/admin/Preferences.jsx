@@ -1,20 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { useTheme } from "../../../ThemeContext";
+import React, { useState } from "react";
 import "../../styles/Preferences.css";
 
 export default function Preferences() {
-  const { t, i18n } = useTranslation();
-  const { isDarkMode, setDarkMode } = useTheme();
 
   const [preferences, setPreferences] = useState({
-    language: i18n.language || "en",
+    darkMode: false,
+    language: "English",
   });
-
-  useEffect(() => {
-    // Sync with current i18n language
-    setPreferences(prev => ({ ...prev, language: i18n.language }));
-  }, [i18n.language]);
 
   const toggle = (key) => {
     if (key === 'darkMode') {
@@ -30,20 +22,26 @@ export default function Preferences() {
     i18n.changeLanguage(newLang);
   };
 
+  const handleLanguageChange = (e) => {
+    const newLang = e.target.value;
+    i18n.changeLanguage(newLang);
+    setPreferences((prev) => ({ ...prev, language: newLang }));
+  };
+
   return (
     <div className="preferences-container">
 
-      <h2 className="preferences-title">{t('preferences.title')}</h2>
+      <h2 className="preferences-title">Preferences</h2>
 
       {/* ----------- APPEARANCE ----------- */}
       <div className="pref-section">
-        <h3 className="pref-section-title">{t('preferences.appearance')}</h3>
+        <h3 className="pref-section-title">Appearance</h3>
 
         <div className="pref-row">
           <div className="pref-label-wrap">
-            <span className="pref-label">{t('preferences.darkMode')}</span>
+            <span className="pref-label">Dark Mode</span>
             <span className="pref-description">
-              {t('preferences.darkModeDesc')}
+              Switch between light and dark mode
             </span>
           </div>
 
@@ -60,24 +58,29 @@ export default function Preferences() {
 
       {/* ----------- LANGUAGE ----------- */}
       <div className="pref-section">
-        <h3 className="pref-section-title">{t('preferences.language')}</h3>
+        <h3 className="pref-section-title">Language</h3>
 
         <div className="pref-row">
           <div className="pref-label-wrap">
-            <span className="pref-label">{t('preferences.language')}</span>
+            <span className="pref-label">Language</span>
             <span className="pref-description">
-              {t('preferences.languageDesc')}
+              Choose your preferred language
             </span>
           </div>
 
           <select
             className="pref-select"
             value={preferences.language}
-            onChange={handleLanguageChange}
+            onChange={(e) =>
+              setPreferences((prev) => ({
+                ...prev,
+                language: e.target.value,
+              }))
+            }
           >
-            <option value="en">{t('languages.english')}</option>
-            <option value="sq">{t('languages.albanian')}</option>
-            <option value="de">{t('languages.german')}</option>
+            <option>English</option>
+            <option>Albanian</option>
+            <option>German</option>
           </select>
         </div>
       </div>

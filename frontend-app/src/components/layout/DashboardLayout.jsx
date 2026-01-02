@@ -3,6 +3,7 @@ import { useNavigate, Outlet } from "react-router-dom";
 import { getUser } from "../../utils/storage";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import Chatbot from "../dashboard/Chatbot";
 import "../styles/Layout.css";
 
 export default function DashboardLayout() {
@@ -31,6 +32,7 @@ export default function DashboardLayout() {
       <main className="content">
         <Outlet />
       </main>
+      <Chatbot />
     </div>
   );
 }
