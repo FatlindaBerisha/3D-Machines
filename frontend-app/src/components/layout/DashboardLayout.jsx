@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
+import { getUser } from "../../utils/storage";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import "../styles/Layout.css";
@@ -9,15 +10,14 @@ export default function DashboardLayout() {
   const [role, setRole] = useState(null);
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem("loggedIn") === "true";
-    const userRole = localStorage.getItem("userRole");
+    const user = getUser();
 
-    if (!loggedIn || (userRole !== "admin" && userRole !== "user")) {
+    if (!user || (user.role !== "admin" && user.role !== "user")) {
       navigate("/", { replace: true });
       return;
     }
 
-    setRole(userRole);
+    setRole(user.role);
   }, [navigate]);
 
   if (!role) return null;

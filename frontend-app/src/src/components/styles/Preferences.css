@@ -1,0 +1,136 @@
+/* Preferences Container */
+.preferences-container {
+  max-width: 650px;
+  width: 100%;
+  margin: 15px auto 0;
+  padding: 15px 35px 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+
+/* Title */
+.preferences-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #3f51b5;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid #3f51b5;
+  padding-bottom: 8px;
+  max-width: 300px;
+  margin: 0 auto 25px auto;
+}
+
+/* Sections */
+.pref-section {
+  margin-bottom: 28px;
+}
+
+.pref-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #345ea0;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* Rows */
+.pref-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+.pref-row:last-child {
+  border-bottom: none;
+}
+
+/* Text */
+.pref-label-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 60%;
+}
+.pref-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+.pref-description {
+  font-size: 12.5px;
+  color: #777;
+  margin-top: 2px;
+}
+
+/* Dropdown */
+.pref-select {
+  padding: 9px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  width: 170px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg fill='%234374ba' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  padding-right: 40px;
+  transition: border-color 0.2s ease;
+}
+.pref-select:focus {
+  border-color: #4374ba;
+}
+
+/* Switch */
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+}
+.switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #ccc;
+  border-radius: 34px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+input:checked + .slider {
+  background: #4374ba;
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .pref-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .pref-select {
+    width: 100%;
+  }
+}

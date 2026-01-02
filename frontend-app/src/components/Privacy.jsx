@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function Privacy() {
+  const { t } = useTranslation();
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    // Reset any global styles from dashboard/login
     const html = document.querySelector("html");
     const body = document.querySelector("body");
     const oldHtmlStyles = html.style.cssText;
@@ -113,61 +114,47 @@ export default function Privacy() {
   return (
     <div id="privacy-wrapper" style={wrapperStyle}>
       <div style={innerStyle}>
-        <h1 id="privacy-title" style={h1Style}>Privacy Policy</h1>
-        <p style={italicSmall}>Last updated: June 2025</p>
+        <h1 id="privacy-title" style={h1Style}>{t('privacy.title')}</h1>
+        <p style={italicSmall}>{t('privacy.lastUpdated')}</p>
 
-        <h2 style={h2Style}>1. Information We Collect</h2>
+        <h2 style={h2Style}>{t('privacy.section1Title')}</h2>
         <p style={pStyle}>
-          We collect information you provide when registering or using the 3D
-          Machines platform, such as your name, email, and printer usage data to
-          optimize your experience and enhance service quality.
+          {t('privacy.section1Text')}
         </p>
 
-        <h2 style={h2Style}>2. How We Use Your Information</h2>
+        <h2 style={h2Style}>{t('privacy.section2Title')}</h2>
         <p style={pStyle}>
-          Your data helps us provide and improve the service, manage your print
-          jobs, monitor filament usage, and communicate important updates or
-          support information.
+          {t('privacy.section2Text')}
         </p>
 
-        <h2 style={h2Style}>3. Data Security</h2>
+        <h2 style={h2Style}>{t('privacy.section3Title')}</h2>
         <p style={pStyle}>
-          We use industry-standard security measures to protect your personal
-          data from unauthorized access, disclosure, or destruction. Our systems
-          are monitored to ensure continued protection.
+          {t('privacy.section3Text')}
         </p>
 
-        <h2 style={h2Style}>4. Sharing Your Information</h2>
+        <h2 style={h2Style}>{t('privacy.section4Title')}</h2>
         <p style={pStyle}>
-          We do not sell your personal data. Information is only shared with
-          trusted service providers when necessary to operate the platform or
-          comply with legal obligations.
+          {t('privacy.section4Text')}
         </p>
 
-        <h2 style={h2Style}>5. Cookies and Analytics</h2>
+        <h2 style={h2Style}>{t('privacy.section5Title')}</h2>
         <p style={pStyle}>
-          The platform may use cookies and analytics tools to improve
-          performance, analyze traffic, and personalize your experience. You can
-          control cookie settings in your browser.
+          {t('privacy.section5Text')}
         </p>
 
-        <h2 style={h2Style}>6. Your Rights</h2>
+        <h2 style={h2Style}>{t('privacy.section6Title')}</h2>
         <p style={pStyle}>
-          You have the right to access, correct, or delete your personal data.
-          To exercise these rights or request more details, contact us at the
-          email address below.
+          {t('privacy.section6Text')}
         </p>
 
-        <h2 style={h2Style}>7. Changes to This Policy</h2>
+        <h2 style={h2Style}>{t('privacy.section7Title')}</h2>
         <p style={pStyle}>
-          We may update this Privacy Policy periodically. Continued use of the
-          platform after changes indicates your acceptance of the updated
-          version.
+          {t('privacy.section7Text')}
         </p>
 
-        <h2 style={h2Style}>8. Contact Us</h2>
+        <h2 style={h2Style}>{t('privacy.section8Title')}</h2>
         <p style={pStyle}>
-          For questions or concerns about this Privacy Policy, please contact{" "}
+          {t('privacy.section8Text')}{" "}
           <a href="mailto:support@3dmachines.com" style={linkStyle}>
             support@3dmachines.com
           </a>

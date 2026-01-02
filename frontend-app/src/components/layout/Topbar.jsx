@@ -10,21 +10,9 @@ const Topbar = () => {
   const { user, setUser, token, setToken } = useContext(UserContext);
 
   const handleLogout = () => {
-  // Clear React state
-    setUser(null);
-    setToken(null);
-
-    // Clear browser storage
-    localStorage.clear();
-    sessionStorage.clear();
-
-    // Remove history so BACK won’t return
-    navigate("/", { replace: true });
-
-    // Hard refresh to avoid bfcache UI showing
-    setTimeout(() => {
-      window.location.reload();
-    }, 50);
+    import("../../utils/auth").then(({ logout }) => {
+      logout();
+    });
   };
 
 
@@ -34,15 +22,11 @@ const Topbar = () => {
     <header className="topbar-container">
       <nav className="topbar-nav">
 
-        {/* Ikona e njoftimeve */}
         <Notifications token={token} />
 
-        {/* Linku për profilin */}
         <a href={profilePath} title="Profile" className="topbar-link">
           <FaUser />
         </a>
-
-        {/* Butoni Logout */}
         <button onClick={handleLogout} title="Logout" className="topbar-link logout-button">
           <FaSignOutAlt />
         </button>

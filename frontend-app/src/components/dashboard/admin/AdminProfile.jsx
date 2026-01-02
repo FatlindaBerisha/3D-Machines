@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import { UserContext } from '../../../UserContext';
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
@@ -8,21 +9,22 @@ import api from "../../../utils/axiosClient";
 import '../../styles/Profile.css';
 
 export default function AdminProfile() {
+  const { t } = useTranslation();
   const { setUser } = useContext(UserContext);
   const [originalData, setOriginalData] = useState(null);
 
   const professionOptions = useMemo(() => [
-    { value: "student", label: "Student" },
-    { value: "engineer", label: "Engineer" },
-    { value: "designer", label: "Designer" },
-  ], []);
+    { value: "student", label: t('common.student') },
+    { value: "engineer", label: t('common.engineer') },
+    { value: "designer", label: t('common.designer') },
+  ], [t]);
 
   const genderOptions = useMemo(() => [
-    { value: "female", label: "Female" },
-    { value: "male", label: "Male" },
-    { value: "notsay", label: "Rather not say" },
-    { value: "custom", label: "Customised" },
-  ], []);
+    { value: "female", label: t('genderOptions.female') },
+    { value: "male", label: t('genderOptions.male') },
+    { value: "notsay", label: t('genderOptions.notSay') },
+    { value: "custom", label: t('genderOptions.custom') },
+  ], [t]);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -43,7 +45,7 @@ export default function AdminProfile() {
       setLoading(true);
 
       try {
-        const res = await api.get("/user/profile"); // <-- axiosClient
+        const res = await api.get("/user/profile");
         const data = res.data;
 
         setFormData({
@@ -56,7 +58,7 @@ export default function AdminProfile() {
 
         setUser(data);
       } catch (err) {
-        toast.error("Failed to fetch profile.");
+        toast.error(t('toasts.loadDataFailed'));
       } finally {
         setLoading(false);
       }
@@ -81,9 +83,9 @@ export default function AdminProfile() {
         gender: formData.gender,
       };
 
-      await api.put("/user/profile", bodyToSend); // <-- axiosClient
+      await api.put("/user/profile", bodyToSend);
 
-      toast.success("Profile updated successfully!");
+      toast.success(t('profile.profileUpdated'));
 
       setUser(prev => ({
         ...prev,
@@ -92,7 +94,7 @@ export default function AdminProfile() {
 
       setIsEditing(false);
     } catch (error) {
-      toast.error("Failed to update profile.");
+      toast.error(t('toasts.printJobUpdateFailed'));
     } finally {
       setLoading(false);
     }
@@ -104,7 +106,7 @@ export default function AdminProfile() {
   // =========================
   return (
     <form onSubmit={handleSubmit} className="profile-form">
-      <h2 className="profile-title">Admin Profile</h2>
+      <h2 className="profile-title">{t('profile.adminTitle')}</h2>
 
       {/* Full Name */}
       <div className="user-input-group">
@@ -117,7 +119,7 @@ export default function AdminProfile() {
           disabled={!isEditing || loading}
           required
         />
-        <label>Full Name</label>
+        <label>{t('profile.fullName')}</label>
       </div>
 
       {/* Phone */}
@@ -146,7 +148,7 @@ export default function AdminProfile() {
           placeholder=" "
           disabled
         />
-        <label>Email</label>
+        <label>{t('profile.email')}</label>
       </div>
 
       {/* Selects */}
@@ -165,7 +167,7 @@ export default function AdminProfile() {
               </option>
             ))}
           </select>
-          <label>Profession</label>
+          <label>{t('profile.profession')}</label>
         </div>
 
         <div className="user-input-group">
@@ -182,7 +184,7 @@ export default function AdminProfile() {
               </option>
             ))}
           </select>
-          <label>Gender</label>
+          <label>{t('profile.gender')}</label>
         </div>
       </div>
 
@@ -196,12 +198,12 @@ export default function AdminProfile() {
           }}
           className="edit-button"
         >
-          Edit
+          {t('profile.edit')}
         </button>
       ) : (
         <div className="edit-buttons-row">
           <button type="submit" disabled={loading} className="submit-button">
-            {loading ? "Updating..." : "Save Changes"}
+            {loading ? t('profile.updating') : t('profile.save')}
           </button>
           <button
             type="button"
@@ -212,7 +214,7 @@ export default function AdminProfile() {
             disabled={loading}
             className="cancel-button"
           >
-            Cancel
+            {t('profile.cancel')}
           </button>
         </div>
       )}

@@ -6,7 +6,7 @@
   padding: 15px 35px 0;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 }
 
@@ -45,6 +45,7 @@
   padding: 10px 0;
   border-bottom: 1px solid #eee;
 }
+
 .pref-row:last-child {
   border-bottom: none;
 }
@@ -55,11 +56,13 @@
   flex-direction: column;
   width: 60%;
 }
+
 .pref-label {
   font-size: 14px;
   font-weight: 600;
   color: #222;
 }
+
 .pref-description {
   font-size: 12.5px;
   color: #777;
@@ -82,6 +85,7 @@
   padding-right: 40px;
   transition: border-color 0.2s ease;
 }
+
 .pref-select:focus {
   border-color: #4374ba;
 }
@@ -92,6 +96,7 @@
   width: 44px;
   height: 24px;
 }
+
 .switch input {
   display: none;
 }
@@ -104,6 +109,7 @@
   transition: 0.3s;
   cursor: pointer;
 }
+
 .slider:before {
   content: "";
   position: absolute;
@@ -115,10 +121,12 @@
   border-radius: 50%;
   transition: 0.3s;
 }
-input:checked + .slider {
+
+input:checked+.slider {
   background: #4374ba;
 }
-input:checked + .slider:before {
+
+input:checked+.slider:before {
   transform: translateX(20px);
 }
 

@@ -69,6 +69,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<PrintService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<GeminiService>();
 
 var app = builder.Build();
 
@@ -90,4 +91,4 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<backend_app.Hubs.NotificationHub>("/hub/notifications");
 
-app.Run();
+app.Run();  

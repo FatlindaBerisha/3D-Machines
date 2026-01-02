@@ -1,5 +1,17 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import './UserDashboard.css';
 
-export default function UserDashboard() {
-  return <div>User Dashboard Content</div>;
-}
+const UserDashboard = () => {
+    const { t } = useTranslation();
+
+    return (
+        <div className="user-dashboard-container">
+            <div className="welcome-message">
+                <h1>{t('dashboard.welcomeUser')}</h1>
+            </div>
+        </div>
+    );
+};
+
+export default UserDashboard;

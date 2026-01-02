@@ -77,14 +77,22 @@ namespace backend_app.Controllers
 
                     VerificationToken = verificationToken,
                     VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15),
-                    IsEmailVerified = false
+                    IsEmailVerified = true // Auto-verified for development
                 };
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
                 // Send verification email to user
-                _emailService.SendVerificationEmail(user);
+                try
+                {
+                    _emailService.SendVerificationEmail(user);
+                }
+                catch (Exception emailEx)
+                {
+                    Console.WriteLine("Warning: Could not send verification email. " + emailEx.Message);
+                    // Continue flow - user is created, just email failed.
+                }
                 
                 return Ok(new
                 {
@@ -129,7 +137,7 @@ namespace backend_app.Controllers
                 // generate refresh token, save to user, and return it
                 var refreshToken = GenerateRefreshToken();
                 user.RefreshToken = refreshToken;
-                user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7); // adjust lifetime as needed
+                user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
                 user.RefreshTokenCreated = DateTime.UtcNow;
                 user.RefreshTokenRevoked = null;
 
@@ -150,7 +158,7 @@ namespace backend_app.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Login error: " + ex.Message);
+                Console.WriteLine("Login error: " + ex.ToString());
                 return StatusCode(500, "An error occurred: " + ex.Message);
             }
         }

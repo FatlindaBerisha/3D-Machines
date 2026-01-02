@@ -37,3 +37,37 @@ code {
   scrollbar-width: auto;
   scrollbar-color: #345ea0 #f5f6fa;
 }
+
+/* Custom Tooltip */
+.custom-tooltip-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-tooltip-text {
+  visibility: hidden;
+  width: 120px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  right: 0;
+  /* Align right since the button is on the right */
+  margin-top: 5px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.8rem;
+  font-weight: normal;
+  pointer-events: none;
+}
+
+.custom-tooltip-container:hover .custom-tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}

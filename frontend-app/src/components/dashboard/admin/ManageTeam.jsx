@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import { MdSchool, MdEngineering, MdBrush, MdDelete } from "react-icons/md";
 import Pagination from "../Pagination";
-import api from "../../../utils/axiosClient"; // <-- IMPORTANT
+import api from "../../../utils/axiosClient";
 import "../../styles/Profile.css";
 
 function capitalizeFirstLetter(string) {
@@ -11,6 +12,7 @@ function capitalizeFirstLetter(string) {
 }
 
 export default function ManageTeam() {
+  const { t } = useTranslation();
   const [teamMembers, setTeamMembers] = useState([]);
   const toastIdRef = useRef(null);
 
@@ -32,7 +34,7 @@ export default function ManageTeam() {
         const res = await api.get("/team");
         setTeamMembers(res.data);
       } catch (error) {
-        toast.error("Failed to fetch team members.");
+        toast.error(t('toasts.fetchFailed'));
       }
     }
 
@@ -50,7 +52,7 @@ export default function ManageTeam() {
 
     toastIdRef.current = toast.info(
       <div className="toast-confirmation">
-        <p>Are you sure you want to delete this member?</p>
+        <p>{t('team.deleteConfirm')}</p>
         <div className="btn-group">
           <button
             className="confirm-yes"
@@ -60,7 +62,7 @@ export default function ManageTeam() {
               toastIdRef.current = null;
             }}
           >
-            Yes
+            {t('team.yes')}
           </button>
           <button
             className="confirm-no"
@@ -69,7 +71,7 @@ export default function ManageTeam() {
               toastIdRef.current = null;
             }}
           >
-            No
+            {t('team.no')}
           </button>
         </div>
       </div>,
@@ -92,12 +94,12 @@ export default function ManageTeam() {
 
       setTeamMembers((prev) => prev.filter((m) => m.id !== memberId));
 
-      toast.success("Member deleted successfully.");
+      toast.success(t('toasts.deleteSuccess'));
     } catch (error) {
       const msg =
         error?.response?.data?.message ||
         error?.response?.data ||
-        "Failed to delete team member";
+        t('toasts.deleteFailed');
       toast.error(msg);
     }
   }
@@ -112,21 +114,21 @@ export default function ManageTeam() {
 
   return (
     <div className="team-container">
-      <h2 className="profile-title">Team Members</h2>
+      <h2 className="profile-title">{t('team.title')}</h2>
 
       {teamMembers.length === 0 ? (
-        <p className="no-team-message">No team members found.</p>
+        <p className="no-team-message">{t('team.noMembers')}</p>
       ) : (
         <>
           <table className="team-table">
             <thead>
               <tr>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Profession</th>
-                <th>Phone</th>
-                <th>Gender</th>
-                <th>Delete</th>
+                <th>{t('team.fullName')}</th>
+                <th>{t('team.email')}</th>
+                <th>{t('team.profession')}</th>
+                <th>{t('team.phone')}</th>
+                <th>{t('team.gender')}</th>
+                <th>{t('team.delete')}</th>
               </tr>
             </thead>
             <tbody>
@@ -151,8 +153,8 @@ export default function ManageTeam() {
                         cursor: "pointer",
                         fontSize: "1.3rem",
                       }}
-                      aria-label="Delete member"
-                      title="Delete member"
+                      aria-label={t('team.deleteMember')}
+                      title={t('team.deleteMember')}
                     >
                       <MdDelete />
                     </button>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import api from "../../../utils/axiosClient"; // <-- IMPORTANT
+import { useTranslation } from "react-i18next";
+import api from "../../../utils/axiosClient";
 import "../../styles/PrintFilament.css";
 
 export default function NewPrint() {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     jobName: "",
     filamentId: "",
@@ -117,7 +119,7 @@ export default function NewPrint() {
   // -------------------------
   return (
     <form onSubmit={handleSubmit} className="profile-form" noValidate>
-      <h2 className="profile-title">New Print Job</h2>
+      <h2 className="profile-title">{t('newPrint.title')}</h2>
 
       {/* Job Name */}
       <div className="user-input-group">
@@ -131,7 +133,7 @@ export default function NewPrint() {
           autoComplete="off"
           aria-label="Job Name"
         />
-        <label htmlFor="jobName">Job Name</label>
+        <label htmlFor="jobName">{t('newPrint.jobName')}</label>
       </div>
 
       {/* Filament */}
@@ -150,7 +152,7 @@ export default function NewPrint() {
             </option>
           ))}
         </select>
-        <label htmlFor="filamentId">Filament</label>
+        <label htmlFor="filamentId">{t('newPrint.filament')}</label>
       </div>
 
       {/* Status */}
@@ -162,11 +164,11 @@ export default function NewPrint() {
           className={form.status ? "has-value" : ""}
         >
           <option value="" disabled hidden></option>
-          <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
+          <option value="Pending">{t('newPrint.pending')}</option>
+          <option value="In Progress">{t('newPrint.inProgress')}</option>
+          <option value="Completed">{t('newPrint.completed')}</option>
         </select>
-        <label htmlFor="status">Status</label>
+        <label htmlFor="status">{t('newPrint.status')}</label>
       </div>
 
       {/* Duration */}
@@ -181,11 +183,11 @@ export default function NewPrint() {
           pattern="[0-9]*"
           disabled={form.status !== "Completed"}
         />
-        <label htmlFor="duration">Duration (HH:mm:ss)</label>
+        <label htmlFor="duration">{t('newPrint.duration')}</label>
       </div>
 
       <button type="submit" className="create-button">
-        Create Print Job
+        {t('newPrint.createButton')}
       </button>
     </form>
   );

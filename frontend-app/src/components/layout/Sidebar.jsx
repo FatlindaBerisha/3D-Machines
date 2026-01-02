@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   FaTachometerAlt,
   FaPrint,
@@ -13,6 +14,7 @@ import { UserContext } from "../../UserContext";
 
 const Sidebar = ({ role }) => {
   const { user } = useContext(UserContext);
+  const { t } = useTranslation();
   const location = useLocation();
   const [open, setOpen] = React.useState(null);
 
@@ -20,6 +22,16 @@ const Sidebar = ({ role }) => {
 
   const capitalize = (str) =>
     str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
+
+  // Translate profession based on selected language
+  const translateProfession = (prof) => {
+    if (!prof) return "";
+    const profLower = prof.toLowerCase();
+    if (profLower === "student") return t('common.student');
+    if (profLower === "engineer") return t('common.engineer');
+    if (profLower === "designer") return t('common.designer');
+    return capitalize(prof);
+  };
 
   const fullName = user?.fullName || "";
   const profession = user?.profession || "";
@@ -30,41 +42,41 @@ const Sidebar = ({ role }) => {
       title: "",
       links: [
         {
-          name: "Dashboard",
+          name: t('sidebar.dashboard'),
           to: "/dashboard/user",
           icon: <FaTachometerAlt />,
         },
       ],
     },
     {
-      title: "Printing",
+      title: t('sidebar.printing'),
       icon: <FaPrint />,
       dropdown: true,
       links: [
-        { name: "New Print", to: "/dashboard/user/new-print" },
-        { name: "Print Log", to: "/dashboard/user/print-log" },
-        { name: "Project Files", to: "/dashboard/user/user-projects" },
+        { name: t('sidebar.newPrint'), to: "/dashboard/user/new-print" },
+        { name: t('sidebar.printLog'), to: "/dashboard/user/print-log" },
+        { name: t('sidebar.projectFiles'), to: "/dashboard/user/user-projects" },
       ],
     },
     {
-      title: "Cutting",
+      title: t('sidebar.cutting'),
       icon: <FaCut />,
       dropdown: true,
       links: [
-        { name: "New Cut", to: "/dashboard/user/new-cut" },
-        { name: "Cut Log", to: "/dashboard/user/cut-log" },
-        { name: "Cut Projects", to: "/dashboard/user/cut-projects" },
+        { name: t('sidebar.newCut'), to: "/dashboard/user/new-cut" },
+        { name: t('sidebar.cutLog'), to: "/dashboard/user/cut-log" },
+        { name: t('sidebar.cutProjects'), to: "/dashboard/user/cut-projects" },
       ],
     },
     {
-      title: "Settings",
+      title: t('sidebar.settings'),
       icon: <FaCog />,
       dropdown: true,
       links: [
-        { name: "Profile", to: "/dashboard/user/profile" },
-        { name: "Security", to: "/dashboard/user/security" },
-        { name: "Preferences", to: "/dashboard/user/preferences" },
-        { name: "Notifications", to: "/dashboard/user/notifications" },
+        { name: t('sidebar.profile'), to: "/dashboard/user/profile" },
+        { name: t('sidebar.security'), to: "/dashboard/user/security" },
+        { name: t('sidebar.preferences'), to: "/dashboard/user/preferences" },
+        { name: t('sidebar.notifications'), to: "/dashboard/user/notifications" },
       ],
     },
   ];
@@ -75,47 +87,47 @@ const Sidebar = ({ role }) => {
       title: "",
       links: [
         {
-          name: "Admin Dashboard",
+          name: t('sidebar.adminDashboard'),
           to: "/dashboard/admin",
           icon: <FaTachometerAlt />,
         },
       ],
     },
     {
-      title: "Team",
+      title: t('sidebar.team'),
       icon: <FaUsers />,
       dropdown: true,
-      links: [{ name: "Manage Users", to: "/dashboard/admin/users" }],
+      links: [{ name: t('sidebar.manageUsers'), to: "/dashboard/admin/users" }],
     },
     {
-      title: "Printing Overview",
+      title: t('sidebar.printingOverview'),
       icon: <FaPrint />,
       dropdown: true,
       links: [
-        { name: "Print Logs", to: "/dashboard/admin/print-logs" },
-        { name: "Filament Manager", to: "/dashboard/admin/filaments" },
-        { name: "Project Files", to: "/dashboard/admin/project-files" },
+        { name: t('sidebar.printLogs'), to: "/dashboard/admin/print-logs" },
+        { name: t('sidebar.filamentManager'), to: "/dashboard/admin/filaments" },
+        { name: t('sidebar.projectFiles'), to: "/dashboard/admin/project-files" },
       ],
     },
     {
-      title: "Cutting Overview",
+      title: t('sidebar.cuttingOverview'),
       icon: <FaCut />,
       dropdown: true,
       links: [
-        { name: "Cut Logs", to: "/dashboard/admin/cut-logs" },
-        { name: "Material Manager", to: "/dashboard/admin/materials" },
-        { name: "Cut Files", to: "/dashboard/admin/cut-projects" },
+        { name: t('sidebar.cutLogs'), to: "/dashboard/admin/cut-logs" },
+        { name: t('sidebar.materialManager'), to: "/dashboard/admin/materials" },
+        { name: t('sidebar.cutFiles'), to: "/dashboard/admin/cut-projects" },
       ],
     },
     {
-      title: "Settings",
+      title: t('sidebar.settings'),
       icon: <FaCog />,
       dropdown: true,
       links: [
-        { name: "Profile", to: "/dashboard/admin/profile" },
-        { name: "Security", to: "/dashboard/admin/security" },
-        { name: "Preferences", to: "/dashboard/admin/preferences" },
-        { name: "Notifications", to: "/dashboard/admin/notifications" },
+        { name: t('sidebar.profile'), to: "/dashboard/admin/profile" },
+        { name: t('sidebar.security'), to: "/dashboard/admin/security" },
+        { name: t('sidebar.preferences'), to: "/dashboard/admin/preferences" },
+        { name: t('sidebar.notifications'), to: "/dashboard/admin/notifications" },
       ],
     },
   ];
@@ -129,7 +141,7 @@ const Sidebar = ({ role }) => {
       <div className="sidebar-user-info">
         <div className="user-fullname">{fullName}</div>
         <span className={`profession-${profession || "default"}`}>
-          {capitalize(profession)}
+          {translateProfession(profession)}
         </span>
       </div>
 
@@ -167,9 +179,8 @@ const Sidebar = ({ role }) => {
                   <span>{section.title}</span>
                 </div>
                 <FiChevronRight
-                  className={`dropdown-arrow ${
-                    open === section.title ? "open" : ""
-                  }`}
+                  className={`dropdown-arrow ${open === section.title ? "open" : ""
+                    }`}
                 />
               </div>
             )}

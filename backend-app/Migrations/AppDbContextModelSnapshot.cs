@@ -90,6 +90,43 @@ namespace backend_app.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("backend_app.Models.CutJob", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan?>("Duration")
+                        .HasColumnType("time");
+
+                    b.Property<string>("JobName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaterialId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CutJobs");
+                });
+
             modelBuilder.Entity("backend_app.Models.Filament", b =>
                 {
                     b.Property<int>("Id")
@@ -120,6 +157,38 @@ namespace backend_app.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Filaments");
+                });
+
+            modelBuilder.Entity("backend_app.Models.Material", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MaterialType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Thickness")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Materials");
                 });
 
             modelBuilder.Entity("backend_app.Models.PrintJob", b =>
@@ -157,6 +226,25 @@ namespace backend_app.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PrintJobs");
+                });
+
+            modelBuilder.Entity("backend_app.Models.CutJob", b =>
+                {
+                    b.HasOne("backend_app.Models.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Material");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("backend_app.Models.PrintJob", b =>

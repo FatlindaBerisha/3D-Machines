@@ -1,28 +1,30 @@
 import React, { useContext, useState, useEffect, useMemo } from "react";
 import { UserContext } from '../../../UserContext';
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
-import api from "../../../utils/axiosClient"; // <-- SUPER IMPORTANT
+import api from "../../../utils/axiosClient";
 
 import '../../styles/Profile.css';
 
 export default function UserProfile() {
+  const { t } = useTranslation();
   const { setUser } = useContext(UserContext);
   const [originalData, setOriginalData] = useState(null);
 
   const professionOptions = useMemo(() => [
-    { value: "student", label: "Student" },
-    { value: "engineer", label: "Engineer" },
-    { value: "designer", label: "Designer" },
-  ], []);
+    { value: "student", label: t('common.student') },
+    { value: "engineer", label: t('common.engineer') },
+    { value: "designer", label: t('common.designer') },
+  ], [t]);
 
   const genderOptions = useMemo(() => [
-    { value: "female", label: "Female" },
-    { value: "male", label: "Male" },
-    { value: "notsay", label: "Rather not say" },
-    { value: "custom", label: "Customised" },
-  ], []);
+    { value: "female", label: t('genderOptions.female') },
+    { value: "male", label: t('genderOptions.male') },
+    { value: "notsay", label: t('genderOptions.notSay') },
+    { value: "custom", label: t('genderOptions.custom') },
+  ], [t]);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -55,7 +57,7 @@ export default function UserProfile() {
 
         setUser(data);
       } catch (error) {
-        toast.error(error?.response?.data?.message || "Failed to load profile");
+        toast.error(error?.response?.data?.message || t('toasts.loadDataFailed'));
       } finally {
         setLoading(false);
       }
@@ -89,7 +91,7 @@ export default function UserProfile() {
 
       await api.put("/user/profile", bodyToSend);
 
-      toast.success("Profile updated successfully!");
+      toast.success(t('profile.profileUpdated'));
 
       setUser(prevUser => ({
         ...prevUser,
@@ -99,7 +101,7 @@ export default function UserProfile() {
       setIsEditing(false);
 
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Update failed");
+      toast.error(error?.response?.data?.message || t('toasts.printJobUpdateFailed'));
     } finally {
       setLoading(false);
     }
@@ -107,7 +109,7 @@ export default function UserProfile() {
 
   return (
     <form onSubmit={handleSubmit} className="profile-form">
-      <h2 className="profile-title">User Profile</h2>
+      <h2 className="profile-title">{t('profile.title')}</h2>
 
       {/* Full Name */}
       <div className="user-input-group">
@@ -120,7 +122,7 @@ export default function UserProfile() {
           disabled={!isEditing || loading}
           required
         />
-        <label>Full Name</label>
+        <label>{t('profile.fullName')}</label>
       </div>
 
       {/* Phone */}
@@ -150,7 +152,7 @@ export default function UserProfile() {
           placeholder=" "
           disabled
         />
-        <label>Email</label>
+        <label>{t('profile.email')}</label>
       </div>
 
       {/* Profession + Gender */}
@@ -167,7 +169,7 @@ export default function UserProfile() {
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
-          <label>Profession</label>
+          <label>{t('profile.profession')}</label>
         </div>
 
         <div className="user-input-group">
@@ -182,7 +184,7 @@ export default function UserProfile() {
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
-          <label>Gender</label>
+          <label>{t('profile.gender')}</label>
         </div>
       </div>
 
@@ -196,12 +198,12 @@ export default function UserProfile() {
           }}
           className="edit-button"
         >
-          Edit
+          {t('profile.edit')}
         </button>
       ) : (
         <div className="edit-buttons-row">
           <button type="submit" disabled={loading} className="submit-button">
-            {loading ? "Updating..." : "Save Changes"}
+            {loading ? t('profile.updating') : t('profile.save')}
           </button>
           <button
             type="button"
@@ -212,7 +214,7 @@ export default function UserProfile() {
             disabled={loading}
             className="cancel-button"
           >
-            Cancel
+            {t('profile.cancel')}
           </button>
         </div>
       )}

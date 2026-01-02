@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import "../../styles/Preferences.css";
 
-export default function Notifications() {
+export default function AdminNotifications() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState({
     enabled: true,
 
@@ -24,16 +26,16 @@ export default function Notifications() {
     <div className="preferences-container">
 
       {/* Title */}
-      <h2 className="preferences-title">Notifications</h2>
+      <h2 className="preferences-title">{t('notifications.title')}</h2>
 
       <div className="pref-section">
 
         {/* Enable / Disable All */}
         <div className="pref-row">
           <div className="pref-label-wrap">
-            <span className="pref-label">Enable Notifications</span>
+            <span className="pref-label">{t('notifications.enableNotifications')}</span>
             <span className="pref-description">
-              Turn all notifications on or off
+              {t('notifications.enableDesc')}
             </span>
           </div>
 
@@ -53,9 +55,9 @@ export default function Notifications() {
             {/* PRINT JOBS */}
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">Job Created</span>
+                <span className="pref-label">{t('notifications.jobSubmitted')}</span>
                 <span className="pref-description">
-                  Notify me whenever a user submits a new print job
+                  {t('notifications.jobSubmittedDesc')}
                 </span>
               </div>
               <label className="switch">
@@ -70,9 +72,9 @@ export default function Notifications() {
 
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">Job Completed</span>
+                <span className="pref-label">{t('notifications.printCompleted')}</span>
                 <span className="pref-description">
-                  Alert me when a print job finishes successfully
+                  {t('notifications.printCompletedDesc')}
                 </span>
               </div>
               <label className="switch">
@@ -87,9 +89,9 @@ export default function Notifications() {
 
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">Job Failed / Error</span>
+                <span className="pref-label">{t('notifications.printFailed')}</span>
                 <span className="pref-description">
-                  Notify if a print job stops, fails, or has slicing issues
+                  {t('notifications.printFailedDesc')}
                 </span>
               </div>
               <label className="switch">
@@ -106,9 +108,9 @@ export default function Notifications() {
             {/* MACHINES */}
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">Printer Offline</span>
+                <span className="pref-label">{t('notifications.printerOffline')}</span>
                 <span className="pref-description">
-                  Alert me when a printer goes offline or stops responding
+                  {t('notifications.printerOfflineDesc')}
                 </span>
               </div>
               <label className="switch">
@@ -125,9 +127,9 @@ export default function Notifications() {
             {/* SYSTEM */}
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">New User Registered</span>
+                <span className="pref-label">{t('notifications.newUserRegistered')}</span>
                 <span className="pref-description">
-                  Receive alerts when a new user joins the system
+                  {t('notifications.newUserDesc')}
                 </span>
               </div>
               <label className="switch">

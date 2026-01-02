@@ -1,14 +1,16 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import { MdEdit, MdDelete } from "react-icons/md";
 import EditPrintJobForm from "./EditPrintJobForm";
 import Pagination from "../Pagination";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import api from "../../../utils/axiosClient";  // <-- SUPER IMPORTANT
+import api from "../../../utils/axiosClient";
 import "../../styles/PrintLog.css";
 
 export default function PrintLog() {
+  const { t, i18n } = useTranslation();
   const [printJobs, setPrintJobs] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -52,7 +54,7 @@ export default function PrintLog() {
         setFilaments(resFilaments.data);
         setPrintJobs(mergeJobsWithFilamentNames(resJobs.data, resFilaments.data));
       } catch (err) {
-        toast.error(err?.response?.data?.message || "Failed to load print jobs");
+        toast.error(err?.response?.data?.message || t('toasts.printJobUpdateFailed'));
       }
     }
 
@@ -123,11 +125,11 @@ export default function PrintLog() {
   async function handleEditSubmit(e) {
     e.preventDefault();
 
-    if (!editForm.jobName.trim()) return toast.error("Job name is required");
-    if (!editForm.filamentId) return toast.error("Please select a filament");
+    if (!editForm.jobName.trim()) return toast.error(t('toasts.jobNameRequired'));
+    if (!editForm.filamentId) return toast.error(t('toasts.selectFilament'));
 
     if (editForm.duration && (isNaN(editForm.duration) || editForm.duration < 0)) {
-      return toast.error("Duration must be a positive number");
+      return toast.error(t('toasts.durationPositive'));
     }
 
     const payload = {
@@ -139,14 +141,14 @@ export default function PrintLog() {
         editForm.status === "Pending"
           ? null
           : editForm.duration
-          ? formatDuration(editForm.duration)
-          : null,
+            ? formatDuration(editForm.duration)
+            : null,
     };
 
     try {
       await api.put(`/printjob/${editForm.id}`, payload);
 
-      toast.success("Print job updated!");
+      toast.success(t('toasts.printJobUpdated'));
 
       // Refresh print jobs after update
       const [resJobs, resFilaments] = await Promise.all([
@@ -158,7 +160,7 @@ export default function PrintLog() {
       setPrintJobs(mergeJobsWithFilamentNames(resJobs.data, resFilaments.data));
       closeEditModal();
     } catch (err) {
-      toast.error(err?.response?.data?.error || "Failed to update print job");
+      toast.error(err?.response?.data?.error || t('toasts.printJobUpdateFailed'));
     }
   }
 
@@ -173,7 +175,7 @@ export default function PrintLog() {
 
     toastIdRef.current = toast.info(
       <div className="toast-confirmation">
-        <p>Are you sure you want to delete this print job?</p>
+        <p>{t('printLogs.deleteConfirm')}</p>
         <div className="btn-group">
           <button
             className="confirm-yes"
@@ -183,7 +185,7 @@ export default function PrintLog() {
               toastIdRef.current = null;
             }}
           >
-            Yes
+            {t('printLogs.yes')}
           </button>
           <button
             className="confirm-no"
@@ -192,7 +194,7 @@ export default function PrintLog() {
               toastIdRef.current = null;
             }}
           >
-            No
+            {t('printLogs.no')}
           </button>
         </div>
       </div>,
@@ -204,19 +206,29 @@ export default function PrintLog() {
     try {
       await api.delete(`/printjob/${id}`);
 
-      toast.success("Print job deleted!");
+      toast.success(t('toasts.printJobDeleted'));
       setPrintJobs(prev => prev.filter(job => job.id !== id));
     } catch (err) {
-      toast.error("Failed to delete print job");
+      toast.error(t('toasts.printJobDeleteFailed'));
     }
   }
 
   // -------------------------------------------------------
   // FORMATTERS
   // -------------------------------------------------------
+  function getStatusTranslation(status) {
+    const statusMap = {
+      "Pending": t('common.pending'),
+      "In Progress": t('common.inProgress'),
+      "Completed": t('common.completed')
+    };
+    return statusMap[status] || status;
+  }
+
   function formatDate(dateStr) {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-GB", {
+    const locale = i18n.language === 'sq' ? 'sq-AL' : i18n.language === 'de' ? 'de-DE' : 'en-GB';
+    return new Date(dateStr).toLocaleDateString(locale, {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -273,7 +285,7 @@ export default function PrintLog() {
   // -------------------------------------------------------
   return (
     <div className="printlog-container">
-      <h2 className="printlog-title">My Print Jobs</h2>
+      <h2 className="printlog-title">{t('printLogs.myTitle')}</h2>
 
       {isEditing && (
         <div className="modal-overlay" onClick={closeEditModal}>
@@ -291,25 +303,25 @@ export default function PrintLog() {
       )}
 
       {printJobs.length === 0 ? (
-        <p className="no-printjobs-message">No print jobs found.</p>
+        <p className="no-printjobs-message">{t('printLogs.noPrintJobs')}</p>
       ) : (
         <>
           <div style={{ marginBottom: "8px", textAlign: "right" }}>
             <button className="export-excel-btn" onClick={exportToExcel}>
-              <i className="bi bi-file-earmark-excel-fill"></i> Export
+              <i className="bi bi-file-earmark-excel-fill"></i> {t('printLogs.export')}
             </button>
           </div>
 
           <table className="printlog-table">
             <thead>
               <tr>
-                <th>Job Name</th>
-                <th>Filament</th>
-                <th>Status</th>
-                <th>Duration</th>
-                <th>Created At</th>
-                <th className="actions-cell">Edit</th>
-                <th className="actions-cell">Delete</th>
+                <th>{t('printLogs.jobName')}</th>
+                <th>{t('printLogs.filament')}</th>
+                <th>{t('printLogs.status')}</th>
+                <th>{t('printLogs.duration')}</th>
+                <th>{t('printLogs.createdAt')}</th>
+                <th className="actions-cell">{t('common.edit')}</th>
+                <th className="actions-cell">{t('common.delete')}</th>
               </tr>
             </thead>
             <tbody>
@@ -319,7 +331,7 @@ export default function PrintLog() {
                   <td>{job.filamentName || "-"}</td>
                   <td>
                     <span className={`printlog-status printlog-status-${job.status.toLowerCase().replace(" ", "-")}`}>
-                      {job.status}
+                      {getStatusTranslation(job.status)}
                     </span>
                   </td>
                   <td>{job.duration || "-"}</td>

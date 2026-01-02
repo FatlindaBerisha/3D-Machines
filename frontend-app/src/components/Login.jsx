@@ -1,24 +1,55 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from "react-toastify";
 import { UserContext } from '../UserContext';
 import api from "../utils/axiosClient";
+import { removeAuth } from '../utils/storage';
 import './styles/Form.css';
 import logo from '../assets/logo.png';
 
 export default function LoginForm() {
   const { setUser } = useContext(UserContext);
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     document.body.classList.add("auth-page");
+
+    const savedEmail = localStorage.getItem('savedEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+
     return () => document.body.classList.remove("auth-page");
+  }, []);
+
+  useEffect(() => {
+    const logoutToast = localStorage.getItem('logoutToast');
+    const loginSession = localStorage.getItem('loginSession');
+
+
+    if (logoutToast === 'true') {
+      toast.info(t('toasts.logoutMessage'), {
+        style: { background: "#345ea0", color: "#fff" }
+      });
+      localStorage.removeItem('logoutToast');
+      localStorage.removeItem('loginSession');
+    }
+    else if (loginSession === 'active') {
+      toast.info(t('toasts.logoutMessage'), {
+        style: { background: "#345ea0", color: "#fff" }
+      });
+      localStorage.removeItem('loginSession');
+    }
   }, []);
 
   const delay = (ms) => new Promise(res => setTimeout(res, ms));
@@ -27,13 +58,13 @@ export default function LoginForm() {
     e.preventDefault();
 
     if (!email || !password) {
-      toast.warning("Please fill in both fields.");
+      toast.warning(t('toasts.fillAllFields'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.warning("Invalid email format.");
+      toast.warning(t('toasts.invalidEmail'));
       return;
     }
 
@@ -46,15 +77,17 @@ export default function LoginForm() {
       const data = res.data;
 
       if (!data?.token) {
-        toast.error("Invalid response from server.");
+        toast.error(t('toasts.invalidResponse'));
         return;
       }
 
-      localStorage.clear();
+      removeAuth();
 
-      localStorage.setItem("jwtToken", data.token);
+      const storage = rememberMe ? localStorage : sessionStorage;
+
+      storage.setItem("jwtToken", data.token);
       if (data.refreshToken) {
-        localStorage.setItem("refreshToken", data.refreshToken);
+        storage.setItem("refreshToken", data.refreshToken);
       }
 
       let decodedEmail = "";
@@ -65,14 +98,16 @@ export default function LoginForm() {
           payload.email ||
           payload.Email ||
           "";
-      } catch {}
+      } catch { }
 
-      localStorage.setItem("fullName", data.fullName || "");
-      localStorage.setItem("userRole", data.role || "user");
-      localStorage.setItem("profession", data.profession || "");
-      localStorage.setItem("gender", data.gender || "");
-      localStorage.setItem("email", decodedEmail || email);
-      localStorage.setItem("loggedIn", "true");
+      storage.setItem("loggedIn", "true");
+
+      if (rememberMe) {
+        localStorage.setItem('savedEmail', decodedEmail || email);
+      } else {
+        localStorage.removeItem('savedEmail');
+      }
+      localStorage.removeItem('savedPassword');
 
       const userObj = {
         token: data.token,
@@ -84,9 +119,13 @@ export default function LoginForm() {
         email: decodedEmail || email,
       };
 
+      storage.setItem("user", JSON.stringify(userObj));
+
+      localStorage.setItem('loginSession', 'active');
+
       setUser(userObj);
 
-      toast.success("Login successful!", {
+      toast.success(t('toasts.loginSuccess'), {
         autoClose: 900,
         onClose: () => {
           navigate(userObj.role === "admin" ? "/dashboard/admin" : "/dashboard/user");
@@ -94,11 +133,11 @@ export default function LoginForm() {
       });
 
     } catch (err) {
-      let msg = err?.response?.data?.message || err?.response?.data || "Login failed.";
+      let msg = err?.response?.data?.message || err?.response?.data || t('toasts.loginFailed');
 
       if (msg.toLowerCase().includes("email not verified")) {
-          toast.error("Your email is not verified. Please check your inbox.");
-          return;
+        toast.error(t('toasts.emailNotVerified'));
+        return;
       }
       toast.error(msg);
     } finally {
@@ -108,11 +147,9 @@ export default function LoginForm() {
   return (
     <div className="auth-wrapper modern">
       <div className="left-panel">
-        <h2>3D Machines – Access Portal</h2>
+        <h2>{t('login.title')}</h2>
         <p>
-          Manage your entire 3D printing process from a single, easy-to-use interface.
-          Easily track your print jobs, monitor filament consumption, and view your printer’s status in real time.
-          Developed to simplify things and allow you to print high-quality results consistently and reliably.
+          {t('login.description')}
         </p>
       </div>
 
@@ -121,32 +158,38 @@ export default function LoginForm() {
           <img src={logo} alt="Logo" className="logo-img" />
 
           <div className="input-group">
-            <input id="email" type="text" name="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} placeholder=" " aria-label="Email" autoComplete="email"/>
-            <label htmlFor="email">Email</label>
+            <input id="email" type="text" name="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} placeholder=" " aria-label={t('login.email')} autoComplete="email" />
+            <label htmlFor="email">{t('login.email')}</label>
           </div>
-          
+
           <div className="input-group">
-            <input type={showPassword ? "text" : "password"} name="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} placeholder=" " aria-label="Password" autoComplete="current-password"/>
-            <label>Password</label>
+            <input type={showPassword ? "text" : "password"} name="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} placeholder=" " aria-label={t('login.password')} autoComplete="current-password" />
+            <label>{t('login.password')}</label>
             <button
               type="button"
               onClick={() => setShowPassword(prev => !prev)}
               className={`show-password-btn btn-show ${showPassword ? 'active' : ''}`}
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
               aria-pressed={showPassword}
             >
               <i className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
             </button>
           </div>
-          
+
           <div className="remember-forgot">
             <label className="checkbox-label" htmlFor="rememberMe">
-              <input type="checkbox" id="rememberMe" name="rememberMe"/>
-              Remember Me
+              <input
+                type="checkbox"
+                id="rememberMe"
+                name="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              {t('login.rememberMe')}
             </label>
 
             <Link to="/forgot-password" className="forgot-password-link">
-              Forgot Password?
+              {t('login.forgotPassword')}
             </Link>
           </div>
 
@@ -155,17 +198,17 @@ export default function LoginForm() {
               <>
                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ marginRight: '8px' }}>
                 </span>
-                Logging in...
+                {t('login.loggingIn')}
               </>
             ) : (
-              'Login'
+              t('login.loginButton')
             )}
           </button>
 
           <p className="toggle-text">
-            Don’t have an account?{' '}
+            {t('login.noAccount')}{' '}
             <Link className="toggle-btn" to="/register">
-              Register
+              {t('login.register')}
             </Link>
           </p>
         </form>

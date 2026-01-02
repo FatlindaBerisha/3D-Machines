@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FaBell, FaTimes } from "react-icons/fa";
 import { getConnection, createConnection } from "../utils/signalRConnection";
+import { useTranslation } from "react-i18next";
 
 function Notifications({ token }) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [open, setOpen] = useState(false);
 
@@ -54,6 +56,36 @@ function Notifications({ token }) {
 
   const unread = messages.filter(m => !m.read).length;
 
+  const showInline = messages.length > 0 && messages.length <= 4;
+
+  if (showInline) {
+    return (
+      <div style={{ display: "flex", gap: "10px", alignItems: "center", marginRight: "1rem" }}>
+        {messages.map(m => (
+          <div key={m.id} style={{
+            background: m.read ? "#f8f9fa" : "#e3f2fd",
+            border: "1px solid #dee2e6",
+            borderRadius: "4px",
+            padding: "5px 10px",
+            fontSize: "0.85rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            whiteSpace: "nowrap"
+          }}>
+            <span><strong>{m.user}:</strong> {m.message}</span>
+            <button
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#666", display: "flex", alignItems: "center" }}
+              onClick={() => remove(m.id)}
+            >
+              <FaTimes size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div style={{ position: "relative" }}>
       <div onClick={toggleOpen} style={{ cursor: "pointer", position: "relative" }}>
@@ -79,26 +111,28 @@ function Notifications({ token }) {
           width: 280,
           maxHeight: 300,
           overflowY: "auto",
-          boxShadow: "0px 4px 8px rgba(0,0,0,0.1)"
+          boxShadow: "0px 4px 8px rgba(0,0,0,0.1)",
+          zIndex: 1000
         }}>
           <div style={{
             padding: 8,
             borderBottom: "1px solid #eee",
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             fontWeight: "bold"
           }}>
-            Notifications
             <button
               onClick={markAllRead}
-              style={{ background: "none", border: "none", color: "#007bff", cursor: "pointer" }}
+              className="custom-tooltip-container"
+              style={{ background: "none", border: "none", color: "#007bff", cursor: "pointer", padding: 0 }}
             >
-              Mark all as read
+              <i className="bi bi-check2-all" style={{ fontSize: '1.5rem' }}></i>
+              <span className="custom-tooltip-text">{t('notifications.markAllRead')}</span>
             </button>
           </div>
 
           {messages.length === 0 ? (
-            <div style={{ padding: 10, textAlign: "center", color: "#777" }}>No notifications</div>
+            <div style={{ padding: 10, textAlign: "center", color: "#777" }}>{t('notifications.noNotifications')}</div>
           ) : (
             messages.map(m => (
               <div key={m.id} style={{

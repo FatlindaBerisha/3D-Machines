@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './i18n';
 import App from './App';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import './index.css';
 
-// Listen for logout broadcasts from other tabs
 window.addEventListener('storage', (e) => {
 	if (e.key === 'app-logout') {
-		// clear any in-memory state if needed, then navigate to login
 		window.location.replace('/login');
 	}
 });

@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import ReactDOM from "react-dom";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import Pagination from "../Pagination";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import api from "../../../utils/axiosClient"; // <--- IMPORTANT
+import api from "../../../utils/axiosClient";
 import "../../styles/PrintFilament.css";
 
 export default function PrintLogs() {
+  const { t, i18n } = useTranslation();
   const [printJobs, setPrintJobs] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState(new Set());
@@ -35,7 +37,7 @@ export default function PrintLogs() {
         setUsers(userRes.data);
         setFilaments(filamentRes.data);
       } catch (err) {
-        toast.error("Failed to load data");
+        toast.error(t('toasts.loadDataFailed'));
       }
     }
 
@@ -99,8 +101,8 @@ export default function PrintLogs() {
     selectedUsers.size === 0
       ? printJobs
       : printJobs.filter((job) =>
-          selectedUsers.has(job.userId || job.user?.id)
-        );
+        selectedUsers.has(job.userId || job.user?.id)
+      );
 
   const totalPages = Math.ceil(filteredPrintJobs.length / jobsPerPage);
   const currentJobs = filteredPrintJobs.slice(
@@ -122,12 +124,22 @@ export default function PrintLogs() {
     return `${hours}:${mins}:00`;
   }
 
+  function getStatusTranslation(status) {
+    const statusMap = {
+      "Pending": t('common.pending'),
+      "In Progress": t('common.inProgress'),
+      "Completed": t('common.completed')
+    };
+    return statusMap[status] || status;
+  }
+
   function formatDate(dateString) {
     if (!dateString) return "-";
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "-";
 
-    return date.toLocaleDateString("en-GB", {
+    const locale = i18n.language === 'sq' ? 'sq-AL' : i18n.language === 'de' ? 'de-DE' : 'en-GB';
+    return date.toLocaleDateString(locale, {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -174,9 +186,9 @@ export default function PrintLogs() {
     sortedJobs.forEach((job) => {
       worksheet.addRow([
         job.userFullName ||
-          job.user?.fullName ||
-          users.find((u) => u.id === (job.userId || job.user?.id))?.fullName ||
-          "Unknown",
+        job.user?.fullName ||
+        users.find((u) => u.id === (job.userId || job.user?.id))?.fullName ||
+        "Unknown",
         job.jobName || "-",
         job.filamentName || job.filament?.name || getFilamentNameById(job.filamentId),
         job.status || job.Status || "-",
@@ -206,19 +218,19 @@ export default function PrintLogs() {
 
   return (
     <div className="printjobs-container">
-      <h2 className="printjobs-title">All Print Jobs</h2>
+      <h2 className="printjobs-title">{t('printLogs.title')}</h2>
 
       {printJobs.length === 0 ? (
-        <p className="no-printjobs-message">No print jobs found.</p>
+        <p className="no-printjobs-message">{t('printLogs.noPrintJobs')}</p>
       ) : (
         <>
           <div style={{ marginBottom: "8px", textAlign: "right" }}>
             <button
               className="export-excel-btn"
               onClick={exportToExcel}
-              title="Export to Excel"
+              title={t('printLogs.exportToExcel')}
             >
-              <i className="bi bi-file-earmark-excel-fill"></i> Export
+              <i className="bi bi-file-earmark-excel-fill"></i> {t('printLogs.export')}
             </button>
           </div>
 
@@ -227,12 +239,12 @@ export default function PrintLogs() {
               <tr>
                 <th>
                   <div className="printjobs-user-filter">
-                    User
+                    {t('printLogs.user')}
                     <span
                       ref={iconRef}
                       onClick={toggleUserDropdown}
                       className="printjobs-filter-icon"
-                      title="Filter users"
+                      title={t('printLogs.filterUsers')}
                       role="button"
                       tabIndex={0}
                       onKeyPress={(e) => {
@@ -273,11 +285,11 @@ export default function PrintLogs() {
                   </div>
                 </th>
 
-                <th>Job Name</th>
-                <th>Filament</th>
-                <th>Status</th>
-                <th>Duration</th>
-                <th>Created At</th>
+                <th>{t('printLogs.jobName')}</th>
+                <th>{t('printLogs.filament')}</th>
+                <th>{t('printLogs.status')}</th>
+                <th>{t('printLogs.duration')}</th>
+                <th>{t('printLogs.createdAt')}</th>
               </tr>
             </thead>
 
@@ -300,13 +312,12 @@ export default function PrintLogs() {
 
                   <td>
                     <span
-                      className={`printlog-status printlog-status-${
-                        (job.status || job.Status || "")
-                          .toLowerCase()
-                          .replace(" ", "-")
-                      }`}
+                      className={`printlog-status printlog-status-${(job.status || job.Status || "")
+                        .toLowerCase()
+                        .replace(" ", "-")
+                        }`}
                     >
-                      {job.status || job.Status || "-"}
+                      {getStatusTranslation(job.status || job.Status || "-")}
                     </span>
                   </td>
 

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import api from "../../../utils/axiosClient"; // <-- E RËNDËSISHME
+import { useTranslation } from "react-i18next";
+import api from "../../../utils/axiosClient";
 import "../../styles/Profile.css";
 
 export default function Security() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [editMode, setEditMode] = useState(false);
@@ -19,7 +21,8 @@ export default function Security() {
   const [show, setShow] = useState({
     old: false,
     new: false,
-    confirm: false
+    confirm: false,
+    delete: false
   });
 
   const [deleteModal, setDeleteModal] = useState(false);
@@ -61,11 +64,14 @@ export default function Security() {
       setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
 
     } catch (err) {
-      toast.error(
-        err?.response?.data || 
-        err?.response?.data?.message ||
-        "Password update failed."
-      );
+      const resData = err?.response?.data;
+      const message = resData?.message || resData;
+
+      if (typeof message === 'string' && message.length < 100) {
+        toast.error(message);
+      } else {
+        toast.error(t('toasts.resetPasswordFailed'));
+      }
     } finally {
       setLoading(false);
     }
@@ -94,11 +100,20 @@ export default function Security() {
       navigate("/", { replace: true });
 
     } catch (err) {
-      toast.error(
-        err?.response?.data ||
-        err?.response?.data?.message ||
-        "Delete failed."
-      );
+      const resData = err?.response?.data;
+      const status = err?.response?.status;
+
+      // Handle raw stack traces or 500 errors gracefully
+      if (status === 500 || (typeof resData === 'string' && resData.length > 200)) {
+        toast.error(t('toasts.deleteAccountFailed'));
+      } else if (status === 401 || status === 403 || (typeof resData === 'string' && resData.toLowerCase().includes('password'))) {
+        toast.error(t('toasts.incorrectPassword'));
+      } else {
+        toast.error(
+          resData?.message ||
+          (typeof resData === 'string' ? resData : t('toasts.deleteAccountFailed'))
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -117,32 +132,32 @@ export default function Security() {
           {/* STATIC PASSWORD DISPLAY */}
           <div className="password-static-row">
             <div className="password-column">
-              <span className="static-label">Password</span>
+              <span className="static-label">{t('security.password')}</span>
               <span className="password-dots">••••••••••••••</span>
 
               <div className="security-status">
                 <i className="bi bi-check-circle-fill"></i>
-                Very secure
+                {t('security.verySecure')}
               </div>
             </div>
 
             <button className="edit-password-btn" onClick={() => setEditMode(true)}>
-              Edit
+              {t('security.edit')}
             </button>
           </div>
 
           {/* DELETE ACCOUNT SECTION */}
           <div className="delete-account-section">
-            <h3 className="static-label">Delete Account</h3>
+            <h3 className="static-label">{t('security.deleteAccount')}</h3>
             <p style={{ color: "#6b7280", marginBottom: "10px" }}>
-              Permanently delete your account and all associated data.
+              {t('security.deleteAccountDesc')}
             </p>
 
             <button
               className="delete-account-btn"
               onClick={() => setDeleteModal(true)}
             >
-              Delete
+              {t('security.delete')}
             </button>
           </div>
         </>
@@ -152,7 +167,7 @@ export default function Security() {
       {editMode && (
         <form className="profile-form" onSubmit={handleSubmit}>
 
-          <h2 className="profile-title">Change Password</h2>
+          <h2 className="profile-title">{t('security.changePassword')}</h2>
 
           {/* Current Password */}
           <div className="user-input-group password-group">
@@ -164,7 +179,7 @@ export default function Security() {
               required
               placeholder=" "
             />
-            <label>Current Password</label>
+            <label>{t('security.currentPassword')}</label>
             <button
               type="button"
               className="show-password-btn"
@@ -184,7 +199,7 @@ export default function Security() {
               required
               placeholder=" "
             />
-            <label>New Password</label>
+            <label>{t('security.newPassword')}</label>
             <button
               type="button"
               className="show-password-btn"
@@ -204,7 +219,7 @@ export default function Security() {
               required
               placeholder=" "
             />
-            <label>Confirm Password</label>
+            <label>{t('security.confirmPassword')}</label>
             <button
               type="button"
               className="show-password-btn"
@@ -215,7 +230,7 @@ export default function Security() {
           </div>
 
           <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? "Updating..." : "Save Password"}
+            {loading ? t('security.updating') : t('security.savePassword')}
           </button>
 
           <button
@@ -223,7 +238,7 @@ export default function Security() {
             className="cancel-edit-btn"
             onClick={() => setEditMode(false)}
           >
-            Cancel
+            {t('security.cancel')}
           </button>
         </form>
       )}
@@ -233,24 +248,30 @@ export default function Security() {
         <div className="modal-overlay">
           <div className="shopify-modal">
 
-            <h2 className="modal-title">Delete Account</h2>
+            <h2 className="modal-title">{t('security.deleteAccountTitle')}</h2>
 
             <div className="modal-warning-box">
               <i className="bi bi-exclamation-triangle-fill"></i>
               <p>
-                After deleting your account, your data will be permanently removed.
-                This action cannot be undone.
+                {t('security.deleteWarning')}
               </p>
             </div>
 
-            <div className="user-input-group modal-input">
+            <div className="user-input-group modal-input password-group">
               <input
-                type="password"
+                type={show.delete ? "text" : "password"}
                 placeholder=" "
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
               />
-              <label>Enter your password to confirm</label>
+              <label>{t('security.enterPassword')}</label>
+              <button
+                type="button"
+                className="show-password-btn"
+                onClick={() => setShow((p) => ({ ...p, delete: !p.delete }))}
+              >
+                <i className={show.delete ? "bi bi-eye-slash" : "bi bi-eye"}></i>
+              </button>
             </div>
 
             <div className="modal-actions">
@@ -258,7 +279,7 @@ export default function Security() {
                 className="modal-back-btn"
                 onClick={() => setDeleteModal(false)}
               >
-                Cancel
+                {t('security.cancel')}
               </button>
 
               <button
@@ -266,7 +287,7 @@ export default function Security() {
                 onClick={handleDeleteAccount}
                 disabled={loading}
               >
-                {loading ? "Deleting..." : "Delete"}
+                {loading ? t('security.deleting') : t('security.delete')}
               </button>
             </div>
 

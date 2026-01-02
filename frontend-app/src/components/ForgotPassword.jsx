@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
+import { useTranslation } from "react-i18next";
 import api from "../utils/axiosClient";
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -12,7 +14,7 @@ export default function ForgotPassword() {
     e.preventDefault();
 
     if (!email) {
-      toast.warning("Please enter your email.");
+      toast.warning(t('toasts.enterEmail'));
       return;
     }
 
@@ -21,14 +23,14 @@ export default function ForgotPassword() {
     try {
       await api.post("/auth/forgot-password", { email });
 
-      toast.success("Reset link sent! Check your email.");
+      toast.success(t('toasts.resetLinkSent'));
       setEmail("");
 
     } catch (err) {
       toast.error(
         err?.response?.data ||
         err?.response?.data?.message ||
-        "Something went wrong."
+        t('toasts.resetPasswordFailed')
       );
     } finally {
       setLoading(false);
@@ -38,9 +40,9 @@ export default function ForgotPassword() {
   return (
     <div className="forgot-wrapper">
       <form className="forgot-form" onSubmit={handleSubmit}>
-        <h2 className="forgot-title">Forgot Your Password</h2>
+        <h2 className="forgot-title">{t('forgotPassword.title')}</h2>
         <p className="forgot-description">
-          Please enter your email address to receive a password reset link.
+          {t('forgotPassword.description')}
         </p>
 
         <div className="input-group">
@@ -54,7 +56,7 @@ export default function ForgotPassword() {
             disabled={loading}
             className="input"
           />
-          <label htmlFor="forgot-email">Email Address</label>
+          <label htmlFor="forgot-email">{t('forgotPassword.emailAddress')}</label>
         </div>
 
         <button type="submit" className="forgot-btn" disabled={loading}>
@@ -66,17 +68,17 @@ export default function ForgotPassword() {
                 aria-hidden="true"
                 style={{ marginRight: "8px" }}
               ></span>
-              Sending...
+              {t('forgotPassword.sending')}
             </>
           ) : (
-            "Send Reset Link"
+            t('forgotPassword.sendResetLink')
           )}
         </button>
 
         <p className="forgot-toggle-text">
           <Link className="forgot-toggle-btn" to="/">
             <FiArrowLeft className="back-icon" />
-            Back to Login
+            {t('forgotPassword.backToLogin')}
           </Link>
         </p>
       </form>

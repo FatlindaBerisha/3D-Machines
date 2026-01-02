@@ -2,25 +2,28 @@ import React, { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const token = localStorage.getItem("jwtToken");
-  const role = localStorage.getItem("userRole");
+import { getToken, getUser, removeAuth } from "../../utils/storage";
 
-  // Fix for BACK button cache
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const token = getToken();
+  const user = getUser();
+  const role = user?.role || localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+
   useEffect(() => {
     window.addEventListener("pageshow", (e) => {
       if (e.persisted) window.location.reload();
     });
   }, []);
 
-  // Not logged in → redirect
-  if (!token || !role) return <Navigate to="/" replace />;
+  if (!token || !role) {
+    return <Navigate to="/" replace />;
+  }
 
   try {
     const { exp } = jwtDecode(token);
 
     if (Date.now() >= exp * 1000) {
-      localStorage.clear();
+      removeAuth();
       return <Navigate to="/" replace />;
     }
 
@@ -29,8 +32,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     }
 
     return children;
-  } catch {
-    localStorage.clear();
+  } catch (e) {
+    removeAuth();
     return <Navigate to="/" replace />;
   }
 };

@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FiArrowLeft } from "react-icons/fi";
+import { useTranslation } from "react-i18next";
 import api from "../utils/axiosClient";
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
@@ -19,12 +21,12 @@ export default function ResetPassword() {
     e.preventDefault();
 
     if (!password || !confirmPassword) {
-      toast.error("Please fill in both fields.");
+      toast.error(t('toasts.fillBothFields'));
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error(t('toasts.passwordsDoNotMatch'));
       return;
     }
 
@@ -36,7 +38,7 @@ export default function ResetPassword() {
         newPassword: password,
       });
 
-      toast.success("Password reset successfully!");
+      toast.success(t('toasts.passwordResetSuccess'));
 
       setTimeout(() => navigate("/"), 1500);
 
@@ -44,22 +46,21 @@ export default function ResetPassword() {
       toast.error(
         err?.response?.data ||
         err?.response?.data?.message ||
-        "Something went wrong."
+        t('toasts.resetPasswordFailed')
       );
     } finally {
       setLoading(false);
     }
   };
 
-  if (!token) return <h2>Invalid or missing token.</h2>;
+  if (!token) return <h2>{t('toasts.invalidToken')}</h2>;
 
   return (
     <div className="forgot-wrapper">
       <form className="forgot-form" onSubmit={handleSubmit}>
-        <h2 className="forgot-title">Reset Your Password</h2>
+        <h2 className="forgot-title">{t('resetPassword.title')}</h2>
         <p className="forgot-description">
-          Create a new secure password for your account.
-          Make sure it is strong and easy to remember.
+          {t('resetPassword.description')}
         </p>
 
         {/* New Password */}
@@ -71,7 +72,7 @@ export default function ResetPassword() {
             required
             onChange={(e) => setPassword(e.target.value)}
           />
-          <label>New Password</label>
+          <label>{t('resetPassword.newPassword')}</label>
 
           <button
             type="button"
@@ -91,7 +92,7 @@ export default function ResetPassword() {
             required
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
-          <label>Confirm Password</label>
+          <label>{t('resetPassword.confirmPassword')}</label>
 
           <button
             type="button"
@@ -111,17 +112,17 @@ export default function ResetPassword() {
                 aria-hidden="true"
                 style={{ marginRight: "8px" }}
               ></span>
-              Updating...
+              {t('resetPassword.resetting')}
             </>
           ) : (
-            "Update Password"
+            t('resetPassword.resetButton')
           )}
         </button>
 
         <p className="forgot-toggle-text">
           <Link className="forgot-toggle-btn" to="/">
             <FiArrowLeft className="back-icon" />
-            Back to Login
+            {t('resetPassword.backToLogin')}
           </Link>
         </p>
       </form>

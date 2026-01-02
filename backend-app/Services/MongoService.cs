@@ -10,6 +10,7 @@ namespace backend_app.Services
         private readonly GridFSBucket _bucket;
 
         public IMongoCollection<ProjectDoc> Projects => _db.GetCollection<ProjectDoc>("projects");
+        public IMongoCollection<ProjectDoc> CutProjects => _db.GetCollection<ProjectDoc>("cut_projects");
         public IMongoCollection<MongoUser> MongoUsers => _db.GetCollection<MongoUser>("users");
         public MongoService(IConfiguration cfg)
         {
@@ -20,11 +21,16 @@ namespace backend_app.Services
             _bucket = new GridFSBucket(_db);
         }
 
-        public async Task<(string fileId, string fileName)> UploadFileAsync(Stream stream, string fileName)
+        public async Task<(string fileId, string fileName)> UploadFileAsync(Stream stream, string fileName, bool isCutting = false)
         {
-            var allowed = new[] { ".stl", ".obj", ".vrml", ".wrl", ".3mf" };
-            if (!allowed.Contains(Path.GetExtension(fileName).ToLowerInvariant()))
-                throw new Exception("Invalid file type");
+            var printAllowed = new[] { ".stl", ".obj", ".vrml", ".wrl", ".3mf" };
+            var cutAllowed = new[] { ".dxf", ".svg", ".ai", ".pdf" };
+            
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            var allowed = isCutting ? cutAllowed : printAllowed;
+
+            if (!allowed.Contains(extension))
+                throw new Exception($"Invalid file type for {(isCutting ? "cutting" : "printing")}");
 
             var fileId = await _bucket.UploadFromStreamAsync(fileName, stream);
             return (fileId.ToString(), fileName);
@@ -51,13 +57,14 @@ namespace backend_app.Services
             }
         }
 
-        public async Task DeleteProjectAsync(string id)
+        public async Task DeleteProjectAsync(string id, bool isCutting = false)
         {
-            var project = await Projects.Find(x => x.Id == id).FirstOrDefaultAsync();
+            var collection = isCutting ? CutProjects : Projects;
+            var project = await collection.Find(x => x.Id == id).FirstOrDefaultAsync();
             if (project == null) return;
 
             await DeleteFileAsync(project.FileId);
-            await Projects.DeleteOneAsync(x => x.Id == id);
+            await collection.DeleteOneAsync(x => x.Id == id);
         }
     }
 }

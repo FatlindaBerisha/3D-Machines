@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import "../../styles/Preferences.css";
 
 export default function UserNotifications() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState({
     enabled: true,
 
@@ -22,16 +24,16 @@ export default function UserNotifications() {
     <div className="preferences-container">
 
       {/* Title */}
-      <h2 className="preferences-title">Notifications</h2>
+      <h2 className="preferences-title">{t('notifications.title')}</h2>
 
       <div className="pref-section">
 
         {/* Enable / Disable All */}
         <div className="pref-row">
           <div className="pref-label-wrap">
-            <span className="pref-label">Enable Notifications</span>
+            <span className="pref-label">{t('notifications.enableNotifications')}</span>
             <span className="pref-description">
-              Turn all notifications on or off
+              {t('notifications.enableDesc')}
             </span>
           </div>
 
@@ -52,9 +54,9 @@ export default function UserNotifications() {
             {/* Job Submitted */}
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">Print Job Submitted</span>
+                <span className="pref-label">{t('notifications.jobSubmitted')}</span>
                 <span className="pref-description">
-                  Notify me when I submit a new print job
+                  {t('notifications.jobSubmittedDesc')}
                 </span>
               </div>
 
@@ -71,9 +73,9 @@ export default function UserNotifications() {
             {/* Job Started */}
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">Print Started</span>
+                <span className="pref-label">{t('notifications.printStarted')}</span>
                 <span className="pref-description">
-                  Alert me when my print job begins
+                  {t('notifications.printStartedDesc')}
                 </span>
               </div>
 
@@ -90,9 +92,9 @@ export default function UserNotifications() {
             {/* Job Completed */}
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">Print Completed</span>
+                <span className="pref-label">{t('notifications.printCompleted')}</span>
                 <span className="pref-description">
-                  Notify me when my print job finishes successfully
+                  {t('notifications.printCompletedDesc')}
                 </span>
               </div>
 
@@ -109,9 +111,9 @@ export default function UserNotifications() {
             {/* Job Failed */}
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">Print Failed / Error</span>
+                <span className="pref-label">{t('notifications.printFailed')}</span>
                 <span className="pref-description">
-                  Notify me if my print job stops, fails, or encounters issues
+                  {t('notifications.printFailedDesc')}
                 </span>
               </div>
 
@@ -128,9 +130,9 @@ export default function UserNotifications() {
             {/* DEADLINE */}
             <div className="pref-row sub-setting">
               <div className="pref-label-wrap">
-                <span className="pref-label">Deadline Approaching</span>
+                <span className="pref-label">{t('notifications.deadlineApproaching')}</span>
                 <span className="pref-description">
-                  Receive reminders when a print job is close to its deadline
+                  {t('notifications.deadlineDesc')}
                 </span>
               </div>
 

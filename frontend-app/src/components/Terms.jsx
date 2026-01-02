@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
-
+import { useTranslation } from "react-i18next";
 export default function Terms() {
+  const { t } = useTranslation();
   useEffect(() => {
     window.scrollTo(0, 0);
 
@@ -48,7 +49,7 @@ export default function Terms() {
     textTransform: "uppercase",
     letterSpacing: "1.5px",
     marginBottom: "3rem",
-    
+
   };
 
   const h2Style = {
@@ -113,58 +114,47 @@ export default function Terms() {
   return (
     <div id="terms-wrapper" style={wrapperStyle}>
       <div style={innerStyle}>
-        <h1 id="terms-title" style={h1Style}>Terms of Service</h1>
-        <p style={italicSmall}>Last updated: June 2025</p>
+        <h1 id="terms-title" style={h1Style}>{t('terms.title')}</h1>
+        <p style={italicSmall}>{t('terms.lastUpdated')}</p>
 
-        <h2 style={h2Style}>1. Acceptance of Terms</h2>
+        <h2 style={h2Style}>{t('terms.section1Title')}</h2>
         <p style={pStyle}>
-          By accessing and using the 3D Machines platform, you agree to comply
-          with these Terms of Service. This platform allows you to manage your
-          3D printing jobs, monitor filament usage, and track printer status.
+          {t('terms.section1Text')}
         </p>
 
-        <h2 style={h2Style}>2. User Responsibilities</h2>
+        <h2 style={h2Style}>{t('terms.section2Title')}</h2>
         <p style={pStyle}>
-          You agree to use the platform lawfully, ensuring that your print jobs
-          do not infringe on intellectual property rights or contain illegal
-          content.
+          {t('terms.section2Text')}
         </p>
 
-        <h2 style={h2Style}>3. Account Security</h2>
+        <h2 style={h2Style}>{t('terms.section3Title')}</h2>
         <p style={pStyle}>
-          You are responsible for maintaining the confidentiality of your
-          account credentials and for all activities that occur under your
-          account.
+          {t('terms.section3Text')}
         </p>
 
-        <h2 style={h2Style}>4. Service Availability</h2>
+        <h2 style={h2Style}>{t('terms.section4Title')}</h2>
         <p style={pStyle}>
-          We strive to keep the platform available 24 / 7 but do not guarantee
-          uninterrupted service. Maintenance and updates may cause temporary
-          downtime.
+          {t('terms.section4Text')}
         </p>
 
-        <h2 style={h2Style}>5. Termination</h2>
+        <h2 style={h2Style}>{t('terms.section5Title')}</h2>
         <p style={pStyle}>
-          We reserve the right to suspend or terminate your account if you
-          violate these terms or engage in misuse of the platform.
+          {t('terms.section5Text')}
         </p>
 
-        <h2 style={h2Style}>6. Limitation of Liability</h2>
+        <h2 style={h2Style}>{t('terms.section6Title')}</h2>
         <p style={pStyle}>
-          3D Machines is not liable for any direct or indirect damages arising
-          from your use of the platform or printing results.
+          {t('terms.section6Text')}
         </p>
 
-        <h2 style={h2Style}>7. Changes to Terms</h2>
+        <h2 style={h2Style}>{t('terms.section7Title')}</h2>
         <p style={pStyle}>
-          We may update these Terms of Service at any time. Continued use after
-          changes means you accept the new terms.
+          {t('terms.section7Text')}
         </p>
 
-        <h2 style={h2Style}>8. Contact Us</h2>
+        <h2 style={h2Style}>{t('terms.section8Title')}</h2>
         <p style={pStyle}>
-          For questions about these terms, please contact{" "}
+          {t('terms.section8Text')}{" "}
           <a href="mailto:support@3dmachines.com" style={linkStyle}>
             support@3dmachines.com
           </a>

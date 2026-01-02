@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -11,6 +12,7 @@ import logo from '../assets/logo.png';
 import api from "../utils/axiosClient";
 
 export default function RegisterForm() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -118,11 +120,9 @@ export default function RegisterForm() {
   return (
     <div className="auth-wrapper">
       <div className="left-panel">
-        <h2>3D Machines – Access Portal</h2>
+        <h2>{t('login.title')}</h2>
         <p>
-          Manage your entire 3D printing process from a single, easy-to-use interface.
-          Easily track your print jobs, monitor filament consumption, and view your printer’s status in real time.
-          Developed to simplify things and allow you to print high-quality results consistently and reliably.
+          {t('login.description')}
         </p>
       </div>
 
@@ -131,8 +131,8 @@ export default function RegisterForm() {
           <img src={logo} alt="Logo" className="logo-img" />
 
           <div className="input-group">
-            <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder=" " disabled={loading}/>
-            <label>Full Name</label>
+            <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder=" " disabled={loading} />
+            <label>{t('register.fullName')}</label>
           </div>
 
           <div className="input-group">
@@ -154,18 +154,18 @@ export default function RegisterForm() {
           </div>
 
           <div className="input-group">
-            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder=" " disabled={loading}/>
-            <label>Email</label>
+            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder=" " disabled={loading} />
+            <label>{t('register.email')}</label>
           </div>
 
           <div className="input-group">
-            <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder=" " disabled={loading}/>
-            <label>Password</label>
+            <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder=" " disabled={loading} />
+            <label>{t('register.password')}</label>
             <button
               type="button"
               onClick={() => setShowPassword(prev => !prev)}
               className={`show-password-btn btn-show ${showPassword ? 'active' : ''}`}
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-label={showPassword ? t('register.hidePassword') : t('register.showPassword')}
               aria-pressed={showPassword}
             >
               <i className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
@@ -173,13 +173,13 @@ export default function RegisterForm() {
           </div>
 
           <div className="input-group">
-            <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder=" " disabled={loading}/>
-            <label>Confirm Password</label>
+            <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder=" " disabled={loading} />
+            <label>{t('register.confirmPassword')}</label>
             <button
               type="button"
               onClick={() => setShowConfirmPassword(prev => !prev)}
-              className={`show-password-btn btn-show ${showConfirmPassword  ? 'active' : ''}`}
-              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              className={`show-password-btn btn-show ${showConfirmPassword ? 'active' : ''}`}
+              aria-label={showConfirmPassword ? t('register.hidePassword') : t('register.showPassword')}
               aria-pressed={showConfirmPassword}
             >
               <i className={showConfirmPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
@@ -190,30 +190,30 @@ export default function RegisterForm() {
             <div className="input-group">
               <select name="profession" value={formData.profession} onChange={handleChange} className={formData.profession ? 'has-value' : ''} disabled={loading}>
                 <option value="" disabled hidden></option>
-                <option value="student">Student</option>
-                <option value="engineer">Engineer</option>
-                <option value="designer">Designer</option>
+                <option value="student">{t('common.student')}</option>
+                <option value="engineer">{t('common.engineer')}</option>
+                <option value="designer">{t('common.designer')}</option>
               </select>
-              <label>Profession</label>
+              <label>{t('register.profession')}</label>
             </div>
 
             <div className="input-group">
               <select name="gender" value={formData.gender} onChange={handleChange} className={formData.gender ? 'has-value' : ''} disabled={loading}>
                 <option value="" disabled hidden></option>
-                <option value="female">Female</option>
-                <option value="male">Male</option>
-                <option value="notsay">Rather not say</option>
-                <option value="custom">Customised</option>
+                <option value="female">{t('genderOptions.female')}</option>
+                <option value="male">{t('genderOptions.male')}</option>
+                <option value="notsay">{t('genderOptions.notSay')}</option>
+                <option value="custom">{t('genderOptions.custom')}</option>
               </select>
-              <label>Gender</label>
+              <label>{t('register.gender')}</label>
             </div>
           </div>
 
           <div className="terms-container">
             <label className="terms-label">
-              By registering, you accept the{' '}
-              <a href="/terms" target="_blank" rel="noopener noreferrer">Mechatronic Terms</a> and{' '}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer">Data Policy</a>
+              {t('register.terms')}{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer">{t('register.mechanicTerms')}</a> {t('register.and')}{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer">{t('register.dataPolicy')}</a>
             </label>
           </div>
 
@@ -221,15 +221,15 @@ export default function RegisterForm() {
             {loading ? (
               <>
                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ marginRight: '8px' }}></span>
-                Registering...
+                {t('register.registering')}
               </>
             ) : (
-              'Register'
+              t('register.registerButton')
             )}
           </button>
 
           <p className="toggle-text">
-            Already have an account? <Link className="toggle-btn" to="/">Login</Link>
+            {t('register.haveAccount')} <Link className="toggle-btn" to="/">{t('register.login')}</Link>
           </p>
         </form>
       </div>

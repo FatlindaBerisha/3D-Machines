@@ -1,38 +1,56 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "../../../ThemeContext";
 import "../../styles/Preferences.css";
 
 export default function Preferences() {
+  const { t, i18n } = useTranslation();
+  const { isDarkMode, setDarkMode } = useTheme();
 
   const [preferences, setPreferences] = useState({
-    darkMode: false,
-    language: "English",
+    language: i18n.language || "en",
   });
 
+  useEffect(() => {
+    // Sync with current i18n language
+    setPreferences(prev => ({ ...prev, language: i18n.language }));
+  }, [i18n.language]);
+
   const toggle = (key) => {
-    setPreferences((prev) => ({ ...prev, [key]: !prev[key] }));
+    if (key === 'darkMode') {
+      setDarkMode(!isDarkMode);
+    } else {
+      setPreferences((prev) => ({ ...prev, [key]: !prev[key] }));
+    }
+  };
+
+  const handleLanguageChange = (e) => {
+    const newLang = e.target.value;
+    setPreferences((prev) => ({ ...prev, language: newLang }));
+    i18n.changeLanguage(newLang);
   };
 
   return (
     <div className="preferences-container">
 
-      <h2 className="preferences-title">Preferences</h2>
+      <h2 className="preferences-title">{t('preferences.title')}</h2>
 
       {/* ----------- APPEARANCE ----------- */}
       <div className="pref-section">
-        <h3 className="pref-section-title">Appearance</h3>
+        <h3 className="pref-section-title">{t('preferences.appearance')}</h3>
 
         <div className="pref-row">
           <div className="pref-label-wrap">
-            <span className="pref-label">Dark Mode</span>
+            <span className="pref-label">{t('preferences.darkMode')}</span>
             <span className="pref-description">
-              Switch between light and dark mode
+              {t('preferences.darkModeDesc')}
             </span>
           </div>
 
           <label className="switch">
             <input
               type="checkbox"
-              checked={preferences.darkMode}
+              checked={isDarkMode}
               onChange={() => toggle("darkMode")}
             />
             <span className="slider"></span>
@@ -42,29 +60,24 @@ export default function Preferences() {
 
       {/* ----------- LANGUAGE ----------- */}
       <div className="pref-section">
-        <h3 className="pref-section-title">Language</h3>
+        <h3 className="pref-section-title">{t('preferences.language')}</h3>
 
         <div className="pref-row">
           <div className="pref-label-wrap">
-            <span className="pref-label">Language</span>
+            <span className="pref-label">{t('preferences.language')}</span>
             <span className="pref-description">
-              Choose your preferred language
+              {t('preferences.languageDesc')}
             </span>
           </div>
 
           <select
             className="pref-select"
             value={preferences.language}
-            onChange={(e) =>
-              setPreferences((prev) => ({
-                ...prev,
-                language: e.target.value,
-              }))
-            }
+            onChange={handleLanguageChange}
           >
-            <option>English</option>
-            <option>Albanian</option>
-            <option>German</option>
+            <option value="en">{t('languages.english')}</option>
+            <option value="sq">{t('languages.albanian')}</option>
+            <option value="de">{t('languages.german')}</option>
           </select>
         </div>
       </div>

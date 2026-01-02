@@ -7,26 +7,30 @@ export function UserProvider({ children }) {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    const savedToken = localStorage.getItem('jwtToken');
-    if (savedUser) setUser(JSON.parse(savedUser));
+    const savedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    const savedToken = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
+
+    if (savedUser) {
+      try { setUser(JSON.parse(savedUser)); } catch { }
+    }
     if (savedToken) setToken(savedToken);
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('user');
+  const syncToStorage = (key, value, isObject = false) => {
+    const sValue = isObject ? JSON.stringify(value) : value;
+    if (localStorage.getItem(key)) {
+      localStorage.setItem(key, sValue);
+    } else if (sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, sValue);
     }
+  };
+
+  useEffect(() => {
+    if (user) syncToStorage('user', user, true);
   }, [user]);
 
   useEffect(() => {
-    if (token) {
-      localStorage.setItem('jwtToken', token);
-    } else {
-      localStorage.removeItem('jwtToken');
-    }
+    if (token) syncToStorage('jwtToken', token);
   }, [token]);
 
   return (

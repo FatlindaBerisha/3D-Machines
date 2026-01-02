@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import { MdEdit, MdDelete } from "react-icons/md";
 import "../../styles/PrintFilament.css";
-// UserContext not used in this component
 import api from "../../../utils/axiosClient";
 
 function ProjectModal({ initialData, isEditing, onSubmit, onCancel }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState(initialData);
 
   useEffect(() => setForm(initialData), [initialData]);
@@ -29,7 +30,7 @@ function ProjectModal({ initialData, isEditing, onSubmit, onCancel }) {
     <div className="modal-overlay">
       <div className="modal-content">
         <form onSubmit={handleSubmit} noValidate>
-          <h3 className="filament-title">{isEditing ? "Edit Project" : "Add New Project"}</h3>
+          <h3 className="filament-title">{isEditing ? t('projects.editTitle') : t('projects.addTitle')}</h3>
 
           <div className="filament-input-group full-width">
             <input
@@ -40,7 +41,7 @@ function ProjectModal({ initialData, isEditing, onSubmit, onCancel }) {
               placeholder=" "
               required
             />
-            <label>Module Name</label>
+            <label>{t('projects.moduleName')}</label>
           </div>
 
           <div className="filament-input-group full-width">
@@ -50,15 +51,15 @@ function ProjectModal({ initialData, isEditing, onSubmit, onCancel }) {
               accept=".stl,.obj,.wrl,.vrml,.3mf"
               onChange={handleChange}
             />
-            <label>Project File</label>
+            <label>{t('projects.projectFile')}</label>
           </div>
 
           <div className="printlog-buttons">
             <button type="button" className="printlog-cancel" onClick={onCancel}>
-              Cancel
+              {t('common.cancel')}
             </button>
             <button type="submit" className="printlog-save">
-              {isEditing ? "Save" : "Add"}
+              {isEditing ? t('common.save') : t('common.add')}
             </button>
           </div>
         </form>
@@ -68,6 +69,7 @@ function ProjectModal({ initialData, isEditing, onSubmit, onCancel }) {
 }
 
 export default function AdminProjects() {
+  const { t } = useTranslation();
   const [projects, setProjects] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -152,7 +154,7 @@ export default function AdminProjects() {
 
     toastIdRef.current = toast.info(
       <div className="toast-confirmation">
-        <p>Are you sure you want to delete this project?</p>
+        <p>{t('projects.deleteConfirm')}</p>
 
         <div className="btn-group">
           <button
@@ -172,7 +174,7 @@ export default function AdminProjects() {
               }
             }}
           >
-            Yes
+            {t('projects.yes')}
           </button>
 
           <button
@@ -182,7 +184,7 @@ export default function AdminProjects() {
               toastIdRef.current = null;
             }}
           >
-            No
+            {t('projects.no')}
           </button>
         </div>
       </div>,
@@ -198,20 +200,20 @@ export default function AdminProjects() {
 
   return (
     <div className="filament-container">
-      <h2 className="filament-title">Project Manager</h2>
+      <h2 className="filament-title">{t('projects.title')}</h2>
 
       {paginatedProjects.length === 0 ? (
-        <p className="no-filaments-message">No projects found.</p>
+        <p className="no-filaments-message">{t('projects.noProjects')}</p>
       ) : (
         <>
           <table className="filament-table">
             <thead>
               <tr>
-                <th style={{ width: "200px" }}>Module Name</th>
-                <th style={{ width: "400px" }}>File</th>
-                <th>Downloads</th>
-                <th style={{ width: "80px", textAlign: "center" }}>Edit</th>
-                <th style={{ width: "80px", textAlign: "center" }}>Delete</th>
+                <th style={{ width: "200px" }}>{t('projects.moduleName')}</th>
+                <th style={{ width: "400px" }}>{t('projects.file')}</th>
+                <th>{t('projects.downloads')}</th>
+                <th style={{ width: "80px", textAlign: "center" }}>{t('common.edit')}</th>
+                <th style={{ width: "80px", textAlign: "center" }}>{t('common.delete')}</th>
               </tr>
             </thead>
 
@@ -286,7 +288,7 @@ export default function AdminProjects() {
         onClick={openAddModal}
         style={{ marginTop: 20 }}
       >
-        Add New Project
+        {t('projects.addNew')}
       </button>
 
       {modalOpen && (

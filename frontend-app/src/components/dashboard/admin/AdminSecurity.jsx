@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import api from "../../../utils/axiosClient"; // <-- ADD THIS
+import { useTranslation } from "react-i18next";
+import api from "../../../utils/axiosClient";
 import "../../styles/Profile.css";
 
 export default function Security() {
+  const { t } = useTranslation();
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -68,17 +70,17 @@ export default function Security() {
       {!editMode && (
         <div className="password-static-row">
           <div className="password-column">
-            <span className="static-label">Password</span>
+            <span className="static-label">{t('security.password')}</span>
             <span className="password-dots">••••••••••••••</span>
 
             <div className="security-status">
               <i className="bi bi-check-circle-fill"></i>
-              Very secure
+              {t('security.verySecure')}
             </div>
           </div>
 
           <button className="edit-password-btn" onClick={() => setEditMode(true)}>
-            Edit
+            {t('security.edit')}
           </button>
         </div>
       )}
@@ -87,7 +89,7 @@ export default function Security() {
       {editMode && (
         <form className="profile-form" onSubmit={handleSubmit}>
 
-          <h2 className="profile-title">Change Password</h2>
+          <h2 className="profile-title">{t('security.changePassword')}</h2>
 
           {/* Current Password */}
           <div className="user-input-group password-group">
@@ -99,7 +101,7 @@ export default function Security() {
               required
               placeholder=" "
             />
-            <label>Current Password</label>
+            <label>{t('security.currentPassword')}</label>
             <button
               type="button"
               className="show-password-btn"
@@ -119,7 +121,7 @@ export default function Security() {
               required
               placeholder=" "
             />
-            <label>New Password</label>
+            <label>{t('security.newPassword')}</label>
             <button
               type="button"
               className="show-password-btn"
@@ -139,7 +141,7 @@ export default function Security() {
               required
               placeholder=" "
             />
-            <label>Confirm Password</label>
+            <label>{t('security.confirmPassword')}</label>
             <button
               type="button"
               className="show-password-btn"
@@ -150,7 +152,7 @@ export default function Security() {
           </div>
 
           <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? "Updating..." : "Save Password"}
+            {loading ? t('security.updating') : t('security.savePassword')}
           </button>
 
           <button
@@ -158,7 +160,7 @@ export default function Security() {
             className="cancel-edit-btn"
             onClick={() => setEditMode(false)}
           >
-            Cancel
+            {t('security.cancel')}
           </button>
 
         </form>

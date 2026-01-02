@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { MdDownload, MdSearch } from "react-icons/md";
-import api from "../../../utils/axiosClient"; // <-- E RËNDËSISHME
+import { useTranslation } from "react-i18next";
+import api from "../../../utils/axiosClient";
 import "../../styles/PrintFilament.css";
 
 export default function UserProjects() {
+  const { t } = useTranslation();
   const [projects, setProjects] = useState([]);
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -12,9 +14,6 @@ export default function UserProjects() {
 
   const pageSize = 5;
 
-  // ------------------------------------------------------------
-  // FETCH PROJECTS (me axiosClient → refresh token automatik)
-  // ------------------------------------------------------------
   const fetchProjects = useCallback(async () => {
     try {
       const res = await api.get("/projects");
@@ -28,9 +27,6 @@ export default function UserProjects() {
     fetchProjects();
   }, [fetchProjects]);
 
-  // ------------------------------------------------------------
-  // FILTER + SORT
-  // ------------------------------------------------------------
   const filteredProjects = projects
     .filter(
       (p) =>
@@ -46,9 +42,6 @@ export default function UserProjects() {
     page * pageSize
   );
 
-  // ------------------------------------------------------------
-  // DOWNLOAD FILE (axios blob)
-  // ------------------------------------------------------------
   const handleDownload = async (id, fileName) => {
     try {
       const res = await api.get(`/projects/${id}/download`, {
@@ -70,14 +63,10 @@ export default function UserProjects() {
     }
   };
 
-  // ------------------------------------------------------------
-  // UI
-  // ------------------------------------------------------------
   return (
     <div className="filament-container">
-      <h2 className="filament-title">Projects</h2>
+      <h2 className="filament-title">{t('projects.userTitle')}</h2>
 
-      {/* Search bar */}
       <div
         className="search-bar"
         style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}
@@ -126,16 +115,16 @@ export default function UserProjects() {
 
       {/* Projects table */}
       {paginatedProjects.length === 0 ? (
-        <p className="no-filaments-message">No projects found.</p>
+        <p className="no-filaments-message">{t('projects.noProjects')}</p>
       ) : (
         <>
           <table className="filament-table">
             <thead>
               <tr>
-                <th>Module Name</th>
-                <th>File</th>
-                <th>Downloads</th>
-                <th className="download-header">Download</th>
+                <th>{t('projects.moduleName')}</th>
+                <th>{t('projects.file')}</th>
+                <th>{t('projects.downloads')}</th>
+                <th className="download-header">{t('projects.downloads')}</th>
               </tr>
             </thead>
 

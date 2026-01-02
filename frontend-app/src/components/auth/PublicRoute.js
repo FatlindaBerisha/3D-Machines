@@ -1,11 +1,13 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-const PublicRoute = ({ children }) => {
-  const token = localStorage.getItem("jwtToken");
-  const role = localStorage.getItem("userRole");
+import { getToken, getUser } from "../../utils/storage";
 
-  // Nëse user-i është i loguar → mos e lejo me hy te login/register
+const PublicRoute = ({ children }) => {
+  const token = getToken();
+  const user = getUser();
+  const role = user?.role || localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+
   if (token && role) {
     return <Navigate to={role === "admin" ? "/dashboard/admin" : "/dashboard/user"} replace />;
   }

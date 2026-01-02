@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import { MdEdit, MdDelete } from "react-icons/md";
 import Pagination from "../Pagination";
 import api from "../../..//utils/axiosClient";
 import "../../styles/PrintFilament.css";
 
 function FilamentModal({ initialData, isEditing, onSubmit, onCancel }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState(initialData);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ function FilamentModal({ initialData, isEditing, onSubmit, onCancel }) {
     e.preventDefault();
 
     if (!form.name.trim()) {
-      toast.error("Name is required");
+      toast.error(t('toasts.nameRequired'));
       return;
     }
 
@@ -49,7 +51,7 @@ function FilamentModal({ initialData, isEditing, onSubmit, onCancel }) {
     <div className="modal-overlay">
       <div className="modal-content">
         <form onSubmit={handleSubmit} noValidate>
-          <h3 className="filament-title">{isEditing ? "Edit Filament" : "Add New Filament"}</h3>
+          <h3 className="filament-title">{isEditing ? t('filaments.editTitle') : t('filaments.addTitle')}</h3>
 
           <div className="row-inputs">
             <div className="filament-input-group half-width">
@@ -62,7 +64,7 @@ function FilamentModal({ initialData, isEditing, onSubmit, onCancel }) {
                 required
                 autoComplete="off"
               />
-              <label>Name</label>
+              <label>{t('filaments.name')}</label>
             </div>
 
             <div className="filament-input-group half-width">
@@ -74,7 +76,7 @@ function FilamentModal({ initialData, isEditing, onSubmit, onCancel }) {
                 placeholder=" "
                 autoComplete="off"
               />
-              <label>Color</label>
+              <label>{t('filaments.color')}</label>
             </div>
           </div>
 
@@ -96,7 +98,7 @@ function FilamentModal({ initialData, isEditing, onSubmit, onCancel }) {
                 <option value="ASA">ASA</option>
                 <option value="PC">PC</option>
               </select>
-              <label>Material Type</label>
+              <label>{t('filaments.materialType')}</label>
             </div>
 
             <div className="filament-input-group half-width">
@@ -109,7 +111,7 @@ function FilamentModal({ initialData, isEditing, onSubmit, onCancel }) {
                 placeholder=" "
                 autoComplete="off"
               />
-              <label>Diameter (mm)</label>
+              <label>{t('filaments.diameter')}</label>
             </div>
           </div>
 
@@ -121,15 +123,15 @@ function FilamentModal({ initialData, isEditing, onSubmit, onCancel }) {
               placeholder=" "
               rows={3}
             />
-            <label>Description</label>
+            <label>{t('filaments.description')}</label>
           </div>
 
           <div className="printlog-buttons">
             <button type="button" className="printlog-cancel" onClick={onCancel}>
-              Cancel
+              {t('filaments.cancel')}
             </button>
             <button type="submit" className="printlog-save">
-              {isEditing ? "Save" : "Add"}
+              {isEditing ? t('filaments.save') : t('filaments.add')}
             </button>
           </div>
         </form>
@@ -139,6 +141,7 @@ function FilamentModal({ initialData, isEditing, onSubmit, onCancel }) {
 }
 
 export default function AdminFilaments() {
+  const { t } = useTranslation();
   const [filaments, setFilaments] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -163,7 +166,7 @@ export default function AdminFilaments() {
       const res = await api.get("/filament");
       setFilaments(res.data);
     } catch (err) {
-      toast.error("Failed to load filaments.");
+      toast.error(t('toasts.filamentsFailed'));
     }
   }, []);
 
@@ -207,11 +210,11 @@ export default function AdminFilaments() {
 
       await method(url, formData);
 
-      toast.success(editingId ? "Filament updated!" : "Filament created!");
+      toast.success(editingId ? t('toasts.filamentUpdated') : t('toasts.filamentCreated'));
       await fetchFilaments();
       closeModal();
     } catch (err) {
-      toast.error("Failed to save filament.");
+      toast.error(t('toasts.filamentSaveFailed'));
     }
   };
 
@@ -222,7 +225,7 @@ export default function AdminFilaments() {
     try {
       const resCheck = await api.get(`/filament/${id}/check-tasks`);
       if (resCheck.data.hasTasks) {
-        toast.error("This filament cannot be deleted because it has linked tasks.");
+        toast.error(t('filaments.cannotDelete'));
         return;
       }
 
@@ -234,24 +237,24 @@ export default function AdminFilaments() {
 
       toastIdRef.current = toast.info(
         <div className="toast-confirmation">
-          <p>Are you sure you want to delete this filament?</p>
+          <p>{t('filaments.deleteConfirm')}</p>
           <div className="btn-group">
             <button
               className="confirm-yes"
               onClick={async () => {
                 try {
                   await api.delete(`/filament/${id}`);
-                  toast.success("Filament deleted successfully!");
+                  toast.success(t('toasts.filamentDeleted'));
                   setFilaments((prev) => prev.filter((f) => f.id !== id));
                 } catch {
-                  toast.error("Failed to delete filament.");
+                  toast.error(t('toasts.filamentDeleteFailed'));
                 } finally {
                   toast.dismiss(toastIdRef.current);
                   toastIdRef.current = null;
                 }
               }}
             >
-              Yes
+              {t('filaments.yes')}
             </button>
 
             <button
@@ -261,7 +264,7 @@ export default function AdminFilaments() {
                 toastIdRef.current = null;
               }}
             >
-              No
+              {t('filaments.no')}
             </button>
           </div>
         </div>,
@@ -274,7 +277,7 @@ export default function AdminFilaments() {
         }
       );
     } catch {
-      toast.error("Failed to check filament.");
+      toast.error(t('toasts.filamentCheckFailed'));
     }
   };
 
@@ -287,22 +290,22 @@ export default function AdminFilaments() {
 
   return (
     <div className="filament-container">
-      <h2 className="filament-title">Filament Manager</h2>
+      <h2 className="filament-title">{t('filaments.title')}</h2>
 
       {filaments.length === 0 ? (
-        <p className="no-filaments-message">No filaments found.</p>
+        <p className="no-filaments-message">{t('filaments.noFilaments')}</p>
       ) : (
         <>
           <table className="filament-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Color</th>
-                <th>Material</th>
-                <th>Diameter</th>
-                <th>Description</th>
-                <th>Edit</th>
-                <th>Delete</th>
+                <th>{t('filaments.name')}</th>
+                <th>{t('filaments.color')}</th>
+                <th>{t('filaments.material')}</th>
+                <th>{t('filaments.diameter')}</th>
+                <th>{t('filaments.description')}</th>
+                <th>{t('filaments.edit')}</th>
+                <th>{t('filaments.delete')}</th>
               </tr>
             </thead>
             <tbody>
@@ -340,9 +343,9 @@ export default function AdminFilaments() {
         onClick={openAddModal}
         className="create-button"
         style={{ marginTop: "20px" }}
-        title="Add new filament"
+        title={t('filaments.addNew')}
       >
-        Add New Filament
+        {t('filaments.addNew')}
       </button>
 
       {modalOpen && (

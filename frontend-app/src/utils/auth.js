@@ -1,14 +1,9 @@
-// Centralized logout helper
-// - Revokes refresh token (best-effort)
-// - Clears localStorage
-// - Broadcasts logout to other tabs via `app-logout` key
-// - Redirects to `/login` using replace()
+import { removeAuth } from './storage';
 
 export async function logout({ revoke = true } = {}) {
   try {
     const refreshToken = localStorage.getItem('refreshToken');
     if (revoke && refreshToken) {
-      // Best-effort revoke: use fetch to avoid axios interceptors
       try {
         await fetch('https://localhost:7178/api/auth/revoke-token', {
           method: 'POST',
@@ -19,21 +14,20 @@ export async function logout({ revoke = true } = {}) {
         console.warn('Revoke request failed (ignored):', e);
       }
     }
-  } catch (e) {
-    // ignore
-  }
+  } catch (e) { }
 
-  // Clear storage and notify other tabs
   try {
-    localStorage.clear();
-    // write a timestamp so other tabs detect the change
-    localStorage.setItem('app-logout', Date.now().toString());
-  } catch (e) {
-    /* ignore */
-  }
+    const savedEmail = localStorage.getItem('savedEmail');
+    const savedPassword = localStorage.getItem('savedPassword');
 
-  // Use replace to avoid keeping protected pages in history
-  window.location.replace('/login');
+    removeAuth();
+
+    localStorage.setItem('app-logout', Date.now().toString());
+    localStorage.setItem('logoutToast', 'true');
+    localStorage.removeItem('loginSession');
+  } catch (e) { }
+
+  window.location.replace('/');
 }
 
 const auth = { logout };
