@@ -1,4 +1,11 @@
 {
+    "cuttingTypes": {
+        "laser": "Prerje me Lazer",
+        "cnc": "Prerje me CNC",
+        "waterjet": "Prerje me Ujë (Waterjet)",
+        "plasma": "Prerje me Plazmë",
+        "manual": "Prerje Manuale / Mekanike"
+    },
     "login": {
         "title": "3D Machines – Portali i Aksesit",
         "description": "Menaxhoni të gjithë procesin tuaj të printimit 3D nga një ndërfaqe e vetme dhe e lehtë për t'u përdorur. Ndiqni lehtësisht punët tuaja të printimit, monitoroni konsumin e filamentit dhe shikoni statusin e printerit tuaj në kohë reale. Zhvilluar për të thjeshtuar gjërat dhe për t'ju lejuar të printoni rezultate me cilësi të lartë në mënyrë të qëndrueshme dhe të besueshme.",
@@ -200,6 +207,7 @@
         "german": "Gjermanisht"
     },
     "common": {
+        "add": "Shto",
         "save": "Ruaj",
         "cancel": "Anulo",
         "edit": "Ndrysho",
@@ -397,27 +405,65 @@
         "backToLogin": "Kthehu te Hyrja"
     },
     "chat": {
-        "title": "Asistenti AI",
-        "welcomeMessage": "Përshëndetje! Unë jam asistenti juaj AI. Si mund t'ju ndihmoj sot në lidhje me 3D Machines?",
+        "title": "MechBot",
+        "clearHistory": "Fshij bisedën",
+        "welcomeMessage": "Përshëndetje! Unë jam MechBot. Si mund t'ju ndihmoj sot në lidhje me 3D Machines?",
         "placeholder": "Pyetni çdo gjë...",
         "connectionError": "Më falni, po kam probleme me lidhjen me shërbimin.",
         "suggestions": {
             "user": {
-                "newPrint": "Punë e re printimi",
-                "printLogs": "Logjet e printimit",
-                "checkStatus": "Cili është statusi im?"
+                "newPrint": {
+                    "label": "Printim i ri",
+                    "question": "Si të bëj një printim të ri?"
+                },
+                "printLogs": {
+                    "label": "Logjet e printimit",
+                    "question": "Ku i shoh logjet e printimit?"
+                },
+                "checkStatus": {
+                    "label": "Statusi im",
+                    "question": "Cili është statusi im?"
+                },
+                "newCut": {
+                    "label": "Prerje e re",
+                    "question": "Si të krijoj një prerje të re?"
+                }
             },
             "admin": {
-                "allPrints": "Të gjitha printimet",
-                "manageUsers": "Menaxho përdoruesit",
-                "systemStats": "Analitika e aplikacionit",
-                "globalFilaments": "Filamentet globale"
+                "allPrints": {
+                    "label": "Të gjitha printimet",
+                    "question": "Më trego të gjitha punët e printimit"
+                },
+                "manageUsers": {
+                    "label": "Menaxho përdoruesit",
+                    "question": "Si të menaxhoj përdoruesit?"
+                },
+                "systemStats": {
+                    "label": "Analitika",
+                    "question": "Më trego analitikën e aplikacionit"
+                },
+                "globalFilaments": {
+                    "label": "Filamentet",
+                    "question": "Cilat filamente janë të disponueshme?"
+                }
             },
             "guest": {
-                "login": "Si të kyçem?",
-                "register": "Si të regjistrohem?",
-                "about": "Çfarë është 3D Machines?",
-                "pricing": "A është falas?"
+                "login": {
+                    "label": "Kyçja",
+                    "question": "Si të kyçem?"
+                },
+                "register": {
+                    "label": "Regjistrimi",
+                    "question": "Si të regjistrohem?"
+                },
+                "about": {
+                    "label": "Rreth 3D Machines",
+                    "question": "Çfarë është 3D Machines?"
+                },
+                "pricing": {
+                    "label": "Çmimet",
+                    "question": "A është falas?"
+                }
             }
         }
     }

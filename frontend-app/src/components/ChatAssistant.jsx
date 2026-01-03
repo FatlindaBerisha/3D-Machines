@@ -1,40 +1,65 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MdDelete } from "react-icons/md";
 import { useTranslation } from 'react-i18next';
+import { UserContext } from '../UserContext';
 import './styles/ChatAssistant.css';
 
 const ChatAssistant = () => {
+    const navigate = useNavigate();
     const { t } = useTranslation();
+    const { user } = useContext(UserContext); // Get user from context
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState([
-        { id: 1, text: "Hi! I'm your AI assistant. How can I help you regarding 3D Machines today?", sender: 'ai' }
-    ]);
-    // Effect to update the welcome message when language changes
-    useEffect(() => {
-        setMessages(prev => {
-            const newMessages = [...prev];
-            if (newMessages.length > 0 && newMessages[0].id === 1) {
-                // Get user name from localStorage
-                let userName = "";
-                try {
-                    const userStr = localStorage.getItem("user");
-                    if (userStr) {
-                        const user = JSON.parse(userStr);
-                        userName = user.fullName ? ` ${user.fullName}` : "";
-                    }
-                } catch (e) {
-                    console.error("Error parsing user from storage", e);
-                }
+    const [messages, setMessages] = useState([]);
 
-                // Personalized welcome message
-                newMessages[0].text = t('chat.welcomeMessage').replace("!", `${userName}!`);
-            }
-            return newMessages;
-        });
-    }, [t]);
+    // Get user name from context
+    const getUserName = () => {
+        return user?.fullName || user?.email?.split('@')[0] || "";
+    };
+
+    // Initialize/Reset chat when User or Language changes
+    useEffect(() => {
+        const userName = getUserName();
+        const welcomeMsg = t('chat.welcomeMessage');
+        const personalizedMsg = userName
+            ? welcomeMsg.replace("!", `, ${userName}!`)
+            : welcomeMsg;
+        setMessages([{ id: 1, text: personalizedMsg, sender: 'ai' }]);
+    }, [user, t]);
 
     const [inputText, setInputText] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const chatRef = useRef(null);
     const messagesEndRef = useRef(null);
+
+    // Close chat when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (chatRef.current && !chatRef.current.contains(event.target) && isOpen) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isOpen]);
+
+    // Ensure chat is closed on initial load (login)
+    useEffect(() => {
+        setIsOpen(false);
+    }, []);
+
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const handleClearHistory = () => {
+        const userName = getUserName();
+        const welcomeMsg = t('chat.welcomeMessage');
+        const personalizedMsg = userName ? welcomeMsg.replace("!", `, ${userName}!`) : welcomeMsg;
+        setMessages([{ id: 1, text: personalizedMsg, sender: 'ai' }]);
+        setIsMenuOpen(false);
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,7 +94,18 @@ const ChatAssistant = () => {
             }
 
             const data = await response.json();
-            const aiMessage = { id: Date.now() + 1, text: data.response, sender: 'ai' };
+            let aiText = data.response;
+
+            // Check for navigation command
+            const navMatch = aiText.match(/\[\[NAVIGATE:(.*?)\]\]/);
+            if (navMatch) {
+                const path = navMatch[1];
+                navigate(path);
+                // Remove the command from the displayed message so the user doesn't see the raw tag
+                aiText = aiText.replace(navMatch[0], "").trim();
+            }
+
+            const aiMessage = { id: Date.now() + 1, text: aiText, sender: 'ai' };
             setMessages(prev => [...prev, aiMessage]);
         } catch (error) {
             console.error('Error sending message:', error);
@@ -90,10 +126,8 @@ const ChatAssistant = () => {
     // Helper to format text (Bold **text**)
     const formatMessage = (text) => {
         if (!text) return "";
-        // Split by **bold** markers
         const parts = text.split(/\*\*(.*?)\*\*/g);
         return parts.map((part, index) => {
-            // Odd indices are the captured groups (bold text)
             if (index % 2 === 1) {
                 return <strong key={index}>{part}</strong>;
             }
@@ -103,14 +137,28 @@ const ChatAssistant = () => {
 
     return (
 
-        <div className="chat-assistant-container">
+        <div className="chat-assistant-container" ref={chatRef}>
             {isOpen && (
                 <div className="chat-window">
                     <div className="chat-header">
                         <h3>{t('chat.title')}</h3>
-                        <button className="close-btn" onClick={() => setIsOpen(false)}>
-                            <i className="bi bi-x-lg"></i>
-                        </button>
+                        <div className="header-actions">
+                            <div className="menu-container">
+                                <button className="icon-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                                    <i className="bi bi-three-dots-vertical"></i>
+                                </button>
+                                {isMenuOpen && (
+                                    <div className="chat-dropdown-menu">
+                                        <button onClick={handleClearHistory}>
+                                            <MdDelete className="delete-icon" /> {t('chat.clearHistory')}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <button className="icon-btn close-btn" onClick={() => setIsOpen(false)}>
+                                <i className="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                     </div>
                     <div className="chat-messages">
                         {messages.map((msg, index) => (
@@ -121,27 +169,23 @@ const ChatAssistant = () => {
                                 {index === 0 && messages.length === 1 && (
                                     <div className="suggestions-container">
                                         {(() => {
-                                            const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
-                                            let role = "guest";
-                                            if (userStr) {
-                                                try {
-                                                    role = JSON.parse(userStr).role || "user";
-                                                } catch (e) {
-                                                    role = "guest";
-                                                }
-                                            }
+                                            const role = user?.role || "guest";
                                             const suggestionObj = t('chat.suggestions', { returnObjects: true });
                                             const activeSuggestions = suggestionObj[role] || suggestionObj["guest"] || {};
 
-                                            return Object.entries(activeSuggestions).map(([key, value]) => (
-                                                <button
-                                                    key={key}
-                                                    className="suggestion-chip"
-                                                    onClick={() => setInputText(value)}
-                                                >
-                                                    {value}
-                                                </button>
-                                            ));
+                                            return Object.entries(activeSuggestions).map(([key, value]) => {
+                                                const label = typeof value === 'object' ? value.label : value;
+                                                const question = typeof value === 'object' ? value.question : value;
+                                                return (
+                                                    <button
+                                                        key={key}
+                                                        className="suggestion-chip"
+                                                        onClick={() => setInputText(question)}
+                                                    >
+                                                        {label}
+                                                    </button>
+                                                );
+                                            });
                                         })()}
                                     </div>
                                 )}
@@ -174,9 +218,11 @@ const ChatAssistant = () => {
                     </div>
                 </div>
             )}
-            <button className="chat-fab" onClick={() => setIsOpen(!isOpen)}>
-                {isOpen ? <i className="bi bi-x-lg"></i> : <i className="bi bi-chat-dots-fill"></i>}
-            </button>
+            {!isOpen && (
+                <button className="chat-fab" onClick={() => setIsOpen(true)}>
+                    <i className="bi bi-chat-dots-fill"></i>
+                </button>
+            )}
         </div>
     );
 };

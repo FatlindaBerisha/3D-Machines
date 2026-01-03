@@ -1,4 +1,11 @@
 {
+    "cuttingTypes": {
+        "laser": "Laser Cutting",
+        "cnc": "CNC Cutting",
+        "waterjet": "Waterjet Cutting",
+        "plasma": "Plasma Cutting",
+        "manual": "Manual / Mechanical Cutting"
+    },
     "login": {
         "title": "3D Machines – Access Portal",
         "description": "Manage your entire 3D printing process from a single, easy-to-use interface. Easily track your print jobs, monitor filament consumption, and view your printer's status in real time. Developed to simplify things and allow you to print high-quality results consistently and reliably.",
@@ -200,6 +207,7 @@
         "german": "German"
     },
     "common": {
+        "add": "Add",
         "save": "Save",
         "cancel": "Cancel",
         "edit": "Edit",
@@ -396,27 +404,65 @@
         "backToLogin": "Back to Login"
     },
     "chat": {
-        "title": "AI Assistant",
-        "welcomeMessage": "Hi! I'm your AI assistant. How can I help you regarding 3D Machines today?",
+        "title": "MechBot",
+        "clearHistory": "Clear history",
+        "welcomeMessage": "Hi! I'm MechBot. How can I help you regarding 3D Machines today?",
         "placeholder": "Ask me anything...",
         "connectionError": "Sorry, I'm having trouble connecting to the service.",
         "suggestions": {
             "user": {
-                "newPrint": "New Print Job",
-                "printLogs": "Print Logs",
-                "checkStatus": "What is my status?"
+                "newPrint": {
+                    "label": "New Print",
+                    "question": "How do I create a new print?"
+                },
+                "printLogs": {
+                    "label": "Print Logs",
+                    "question": "Where are my print logs?"
+                },
+                "checkStatus": {
+                    "label": "My Status",
+                    "question": "What is my status?"
+                },
+                "newCut": {
+                    "label": "New Cut",
+                    "question": "How do I create a new cut?"
+                }
             },
             "admin": {
-                "allPrints": "All Print Jobs",
-                "manageUsers": "Manage Users",
-                "systemStats": "App Analytics",
-                "globalFilaments": "Global Filaments"
+                "allPrints": {
+                    "label": "All Prints",
+                    "question": "Show me all print jobs"
+                },
+                "manageUsers": {
+                    "label": "Manage Users",
+                    "question": "How do I manage users?"
+                },
+                "systemStats": {
+                    "label": "Analytics",
+                    "question": "Show me app analytics"
+                },
+                "globalFilaments": {
+                    "label": "Filaments",
+                    "question": "What filaments are available?"
+                }
             },
             "guest": {
-                "login": "How do I login?",
-                "register": "How to register?",
-                "about": "What is 3D Machines?",
-                "pricing": "Is it free?"
+                "login": {
+                    "label": "Login",
+                    "question": "How do I login?"
+                },
+                "register": {
+                    "label": "Register",
+                    "question": "How do I register?"
+                },
+                "about": {
+                    "label": "About",
+                    "question": "What is 3D Machines?"
+                },
+                "pricing": {
+                    "label": "Pricing",
+                    "question": "Is it free?"
+                }
             }
         }
     }

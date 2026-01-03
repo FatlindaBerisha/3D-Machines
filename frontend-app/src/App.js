@@ -54,6 +54,7 @@ export default function App() {
           <ToastContainer
             position="top-right"
             autoClose={4000}
+            limit={3}
             theme="colored"
             toastClassName="login-toast"
             bodyClassName="toast-body"

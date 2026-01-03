@@ -57,7 +57,7 @@ export default function PrintLogs() {
     if (!showUserDropdown && iconRef.current) {
       const rect = iconRef.current.getBoundingClientRect();
       setDropdownPos({
-        top: rect.bottom + window.scrollY,
+        top: rect.bottom + window.scrollY + 6,
         left: rect.left + window.scrollX,
       });
     }
@@ -241,6 +241,7 @@ export default function PrintLogs() {
                   <div className="printjobs-user-filter">
                     {t('printLogs.user')}
                     <span
+                      style={{ marginLeft: '10px' }}
                       ref={iconRef}
                       onClick={toggleUserDropdown}
                       className="printjobs-filter-icon"
@@ -251,7 +252,7 @@ export default function PrintLogs() {
                         if (e.key === "Enter" || e.key === " ") toggleUserDropdown();
                       }}
                     >
-                      ▼
+                      <i className="bi bi-arrow-down-circle-fill"></i>
                     </span>
 
                     {showUserDropdown &&

@@ -20,10 +20,11 @@ function ProjectModal({ initialData, isEditing, onSubmit, onCancel }) {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         if (!form.moduleName.trim()) return toast.error("Module name is required");
-        await onSubmit(form);
+        if (!isEditing && !form.file) return toast.error("Please select a file");
+        onSubmit(form);
     };
 
     return (
@@ -83,7 +84,8 @@ export default function AdminCutProjects() {
             const res = await api.get("/cutprojects");
             setProjects(res.data);
         } catch (err) {
-            toast.error("Failed to fetch cutting projects");
+            const msg = err?.response?.data?.message || err.message || "Failed to fetch cutting projects";
+            toast.error(msg);
         }
     }, []);
 
@@ -127,7 +129,7 @@ export default function AdminCutProjects() {
             closeModal();
             fetchProjects();
         } catch (err) {
-            const msg = err?.response?.data?.message || "Failed to save project";
+            const msg = err?.response?.data?.message || err.message || "Failed to save project";
             toast.error(msg);
         }
     };

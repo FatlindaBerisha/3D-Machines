@@ -44,7 +44,30 @@ namespace backend_app.Controllers
                     }
                 }
 
-                var response = await _geminiService.GetChatResponseAsync(request.Message, userId, userRole);
+                // Fetch Inventory Data for AI Context
+                var filaments = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(_context.Filaments);
+                var materials = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(_context.Materials);
+
+                var inventoryContext = "[INVENTORY DATA]\n";
+                if (filaments.Any())
+                {
+                    inventoryContext += "Available Filaments:\n" + string.Join("\n", filaments.Select(f => $"- {f.Name} (Color: {f.Color}, Material: {f.MaterialType}, Dia: {f.Diameter}mm)"));
+                }
+                else
+                {
+                    inventoryContext += "No filaments currently in stock.\n";
+                }
+
+                if (materials.Any())
+                {
+                    inventoryContext += "\nAvailable Materials for Cutting:\n" + string.Join("\n", materials.Select(m => $"- {m.Name} (Thickness: {m.Thickness}mm)"));
+                }
+                else
+                {
+                    inventoryContext += "\nNo cutting materials currently in stock.\n";
+                }
+
+                var response = await _geminiService.GetChatResponseAsync(request.Message, userId, userRole, inventoryContext);
                 return Ok(new { response });
             }
             catch (System.Exception ex)

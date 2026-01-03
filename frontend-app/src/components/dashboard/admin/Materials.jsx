@@ -82,15 +82,20 @@ function MaterialModal({ initialData, isEditing, onSubmit, onCancel }) {
 
                     <div className="row-inputs">
                         <div className="filament-input-group half-width">
-                            <input
-                                type="text"
+                            <select
                                 name="materialType"
                                 value={form.materialType}
                                 onChange={handleChange}
-                                placeholder=" "
-                                autoComplete="off"
+                                className={form.materialType ? "has-value" : ""}
                                 required
-                            />
+                            >
+                                <option value="" disabled hidden></option>
+                                <option value="Laser Cutting">{t('cuttingTypes.laser')}</option>
+                                <option value="CNC Cutting">{t('cuttingTypes.cnc')}</option>
+                                <option value="Waterjet Cutting">{t('cuttingTypes.waterjet')}</option>
+                                <option value="Plasma Cutting">{t('cuttingTypes.plasma')}</option>
+                                <option value="Manual / Mechanical Cutting">{t('cuttingTypes.manual')}</option>
+                            </select>
                             <label>{t('materials.materialType')}</label>
                         </div>
 
@@ -156,7 +161,8 @@ export default function AdminMaterials() {
             const res = await api.get("/material");
             setMaterials(res.data);
         } catch (err) {
-            toast.error(t('toasts.loadDataFailed'));
+            const msg = err?.response?.data?.message || err.message || t('toasts.loadDataFailed');
+            toast.error(msg);
         }
     }, [t]);
 
@@ -201,7 +207,8 @@ export default function AdminMaterials() {
             await fetchMaterials();
             closeModal();
         } catch (err) {
-            toast.error(t('toasts.error'));
+            const msg = err?.response?.data?.message || err.message || t('toasts.error');
+            toast.error(msg);
         }
     };
 
@@ -229,8 +236,9 @@ export default function AdminMaterials() {
                                     await api.delete(`/material/${id}`);
                                     toast.success(t('toasts.deleteSuccess'));
                                     setMaterials((prev) => prev.filter((m) => m.id !== id));
-                                } catch {
-                                    toast.error(t('toasts.deleteFailed'));
+                                } catch (err) {
+                                    const msg = err?.response?.data?.message || err.message || t('toasts.error');
+                                    toast.error(msg);
                                 } finally {
                                     toast.dismiss(toastIdRef.current);
                                     toastIdRef.current = null;

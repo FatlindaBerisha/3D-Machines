@@ -99,6 +99,18 @@ export default function NewCut() {
         }
     }
 
+    function translateMaterialName(name) {
+        const map = {
+            "Laser Cutting": "cuttingTypes.laser",
+            "CNC Cutting": "cuttingTypes.cnc",
+            "Waterjet Cutting": "cuttingTypes.waterjet",
+            "Plasma Cutting": "cuttingTypes.plasma",
+            "Manual / Mechanical Cutting": "cuttingTypes.manual",
+            "Prerje Manuale / Mekanike": "cuttingTypes.manual"
+        };
+        return map[name] ? t(map[name]) : name;
+    }
+
     return (
         <form onSubmit={handleSubmit} className="profile-form" noValidate>
             <h2 className="profile-title">{t('newCut.title')}</h2>
@@ -127,7 +139,7 @@ export default function NewCut() {
                     <option value="" disabled hidden></option>
                     {materials.map((m) => (
                         <option key={String(m.id)} value={String(m.id)}>
-                            {m.name}
+                            {translateMaterialName(m.name)}
                         </option>
                     ))}
                 </select>

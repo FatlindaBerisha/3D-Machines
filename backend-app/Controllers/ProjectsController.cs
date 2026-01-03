@@ -36,19 +36,29 @@ namespace backend_app.Controllers
             if (string.IsNullOrWhiteSpace(request.ModuleName) || request.File is null || request.File.Length == 0)
                 return BadRequest(new { message = "ModuleName and File are required" });
 
-            using var stream = request.File.OpenReadStream();
-            var (fileId, fileName) = await _mongo.UploadFileAsync(stream, request.File.FileName);
-
-            var doc = new ProjectDoc
+            try
             {
-                ModuleName = request.ModuleName.Trim(),
-                FileName = fileName,
-                FileId = fileId,
-                CreatedAt = DateTime.UtcNow
-            };
+                using var stream = request.File.OpenReadStream();
+                var (fileId, fileName) = await _mongo.UploadFileAsync(stream, request.File.FileName);
 
-            await _mongo.Projects.InsertOneAsync(doc);
-            return Ok(new { project = doc });
+                var doc = new ProjectDoc
+                {
+                    ModuleName = request.ModuleName.Trim(),
+                    FileName = fileName,
+                    FileId = fileId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _mongo.Projects.InsertOneAsync(doc);
+                return Ok(new { project = doc });
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Invalid file type"))
+                    return BadRequest(new { message = ex.Message });
+
+                return StatusCode(500, new { message = ex.Message, stack = ex.StackTrace });
+            }
         }
 
         [HttpPost("{id}/update")]
@@ -63,23 +73,33 @@ namespace backend_app.Controllers
             if (!moduleChanged && !fileChanged)
                 return Ok(new { message = "Project is already up to date", project });
 
-            if (fileChanged)
+            try
             {
-                await _mongo.DeleteFileAsync(project.FileId);
+                if (fileChanged)
+                {
+                    await _mongo.DeleteFileAsync(project.FileId);
 
-                using var stream = request.File!.OpenReadStream();
-                var (newFileId, newFileName) = await _mongo.UploadFileAsync(stream, request.File.FileName);
-                project.FileId = newFileId;
-                project.FileName = newFileName;
+                    using var stream = request.File!.OpenReadStream();
+                    var (newFileId, newFileName) = await _mongo.UploadFileAsync(stream, request.File.FileName);
+                    project.FileId = newFileId;
+                    project.FileName = newFileName;
+                }
+
+                if (moduleChanged)
+                    project.ModuleName = request.ModuleName!.Trim();
+
+                project.UpdatedAt = DateTime.UtcNow;
+                await _mongo.Projects.ReplaceOneAsync(x => x.Id == id, project);
+
+                return Ok(new { message = "Project updated successfully", project });
             }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Invalid file type"))
+                    return BadRequest(new { message = ex.Message });
 
-            if (moduleChanged)
-                project.ModuleName = request.ModuleName!.Trim();
-
-            project.UpdatedAt = DateTime.UtcNow;
-            await _mongo.Projects.ReplaceOneAsync(x => x.Id == id, project);
-
-            return Ok(new { message = "Project updated successfully", project });
+                return StatusCode(500, new { message = ex.Message, stack = ex.StackTrace });
+            }
         }
 
         [HttpGet("{id}/download")]

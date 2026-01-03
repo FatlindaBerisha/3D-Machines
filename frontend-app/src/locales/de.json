@@ -1,4 +1,11 @@
 {
+    "cuttingTypes": {
+        "laser": "Laserschneiden",
+        "cnc": "CNC-Schneiden",
+        "waterjet": "Wasserstrahlschneiden",
+        "plasma": "Plasmaschneiden",
+        "manual": "Manuelles / Mechanisches Schneiden"
+    },
     "login": {
         "title": "3D Machines – Zugangsportal",
         "description": "Verwalten Sie Ihren gesamten 3D-Druckprozess über eine einzige, benutzerfreundliche Oberfläche. Verfolgen Sie einfach Ihre Druckaufträge, überwachen Sie den Filamentverbrauch und sehen Sie den Status Ihres Druckers in Echtzeit. Entwickelt, um die Dinge zu vereinfachen und Ihnen zu ermöglichen, konsistent und zuverlässig qualitativ hochwertige Ergebnisse zu drucken.",
@@ -200,6 +207,7 @@
         "german": "Deutsch"
     },
     "common": {
+        "add": "Hinzufügen",
         "save": "Speichern",
         "cancel": "Abbrechen",
         "edit": "Bearbeiten",
@@ -397,27 +405,65 @@
         "backToLogin": "Zurück zur Anmeldung"
     },
     "chat": {
-        "title": "KI-Assistent",
-        "welcomeMessage": "Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute bezüglich 3D Machines helfen?",
+        "title": "MechBot",
+        "clearHistory": "Verlauf löschen",
+        "welcomeMessage": "Hallo! Ich bin MechBot. Wie kann ich Ihnen heute bezüglich 3D Machines helfen?",
         "placeholder": "Frag mich was...",
         "connectionError": "Entschuldigung, ich habe gerade Verbindungsprobleme.",
         "suggestions": {
             "user": {
-                "newPrint": "Neuer Druckauftrag",
-                "printLogs": "Druckprotokolle",
-                "checkStatus": "Wie ist mein Status?"
+                "newPrint": {
+                    "label": "Neuer Druck",
+                    "question": "Wie erstelle ich einen neuen Druck?"
+                },
+                "printLogs": {
+                    "label": "Druckprotokolle",
+                    "question": "Wo sind meine Druckprotokolle?"
+                },
+                "checkStatus": {
+                    "label": "Mein Status",
+                    "question": "Wie ist mein Status?"
+                },
+                "newCut": {
+                    "label": "Neuer Schnitt",
+                    "question": "Wie erstelle ich einen neuen Schnitt?"
+                }
             },
             "admin": {
-                "allPrints": "Alle Druckaufträge",
-                "manageUsers": "Benutzer verwalten",
-                "systemStats": "App-Analyse",
-                "globalFilaments": "Globale Filamente"
+                "allPrints": {
+                    "label": "Alle Drucke",
+                    "question": "Zeige mir alle Druckaufträge"
+                },
+                "manageUsers": {
+                    "label": "Benutzer verwalten",
+                    "question": "Wie verwalte ich Benutzer?"
+                },
+                "systemStats": {
+                    "label": "Analytik",
+                    "question": "Zeige mir App-Analytik"
+                },
+                "globalFilaments": {
+                    "label": "Filamente",
+                    "question": "Welche Filamente sind verfügbar?"
+                }
             },
             "guest": {
-                "login": "Wie melde ich mich an?",
-                "register": "Wie registriere ich mich?",
-                "about": "Was ist 3D Machines?",
-                "pricing": "Ist es kostenlos?"
+                "login": {
+                    "label": "Anmelden",
+                    "question": "Wie melde ich mich an?"
+                },
+                "register": {
+                    "label": "Registrieren",
+                    "question": "Wie registriere ich mich?"
+                },
+                "about": {
+                    "label": "Über",
+                    "question": "Was ist 3D Machines?"
+                },
+                "pricing": {
+                    "label": "Preise",
+                    "question": "Ist es kostenlos?"
+                }
             }
         }
     }

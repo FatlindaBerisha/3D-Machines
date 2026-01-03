@@ -23,6 +23,7 @@ function ProjectModal({ initialData, isEditing, onSubmit, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.moduleName.trim()) return toast.error("Module name is required");
+    if (!isEditing && !form.file) return toast.error("Please select a file");
     await onSubmit(form);
   };
 
@@ -88,7 +89,8 @@ export default function AdminProjects() {
       const res = await api.get("/projects");
       setProjects(res.data);
     } catch (err) {
-      toast.error("Failed to fetch projects");
+      const msg = err?.response?.data?.message || err.message || "Failed to fetch projects";
+      toast.error(msg);
     }
   }, []);
 
@@ -138,7 +140,7 @@ export default function AdminProjects() {
       closeModal();
       fetchProjects();
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to save project";
+      const msg = err?.response?.data?.message || err.message || "Failed to save project";
       toast.error(msg);
     }
   };

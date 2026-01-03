@@ -41,9 +41,21 @@ export default function AdminCutLogs() {
         loadData();
     }, [t]);
 
+    function translateMaterialName(name) {
+        if (!name) return "-";
+        const map = {
+            "Laser Cutting": "cuttingTypes.laser",
+            "CNC Cutting": "cuttingTypes.cnc",
+            "Waterjet Cutting": "cuttingTypes.waterjet",
+            "Plasma Cutting": "cuttingTypes.plasma",
+            "Manual / Mechanical Cutting": "cuttingTypes.manual"
+        };
+        return map[name] ? t(map[name]) : name;
+    }
+
     function getMaterialNameById(id) {
         const mat = materials.find((m) => m.id === id);
-        return mat ? mat.name : "-";
+        return mat ? translateMaterialName(mat.name) : "-";
     }
 
     const handlePageChange = (page) => {
@@ -54,7 +66,7 @@ export default function AdminCutLogs() {
         if (!showUserDropdown && iconRef.current) {
             const rect = iconRef.current.getBoundingClientRect();
             setDropdownPos({
-                top: rect.bottom + window.scrollY,
+                top: rect.bottom + window.scrollY + 6,
                 left: rect.left + window.scrollX,
             });
         }
@@ -226,6 +238,7 @@ export default function AdminCutLogs() {
                                     <div className="printjobs-user-filter">
                                         {t('cutLogs.user')}
                                         <span
+                                            style={{ marginLeft: '10px' }}
                                             ref={iconRef}
                                             onClick={toggleUserDropdown}
                                             className="printjobs-filter-icon"
@@ -236,7 +249,7 @@ export default function AdminCutLogs() {
                                                 if (e.key === "Enter" || e.key === " ") toggleUserDropdown();
                                             }}
                                         >
-                                            ▼
+                                            <i className="bi bi-arrow-down-circle-fill"></i>
                                         </span>
 
                                         {showUserDropdown &&
@@ -290,9 +303,11 @@ export default function AdminCutLogs() {
                                     </td>
                                     <td>{job.jobName || "-"}</td>
                                     <td>
-                                        {job.materialName ||
+                                        {translateMaterialName(
+                                            job.materialName ||
                                             job.material?.name ||
-                                            getMaterialNameById(job.materialId)}
+                                            materials.find((m) => m.id === job.materialId)?.name
+                                        )}
                                     </td>
 
                                     <td>
