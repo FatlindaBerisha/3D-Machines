@@ -8,7 +8,7 @@ import './i18n';
 
 window.addEventListener('storage', (e) => {
 	if (e.key === 'app-logout') {
-		window.location.replace('/login');
+		window.location.replace('/');
 	}
 });
 

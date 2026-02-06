@@ -83,6 +83,18 @@ export default function EditCutJobForm({
                 <label htmlFor="duration">{t('cutLogs.durationLabel')}</label>
             </div>
 
+            <div className="user-input-group">
+                <textarea
+                    name="description"
+                    value={formData.description || ""}
+                    onChange={onChange}
+                    placeholder=" "
+                    autoComplete="off"
+                    rows="3"
+                />
+                <label htmlFor="description">{t('materials.description')}</label>
+            </div>
+
             <div className="printlog-buttons">
                 <button type="button" className="printlog-cancel" onClick={onCancel}>
                     {t('common.cancel')}

@@ -52,7 +52,18 @@
         "save": "Save Changes",
         "cancel": "Cancel",
         "updating": "Updating...",
-        "profileUpdated": "Profile updated successfully!"
+        "profileUpdated": "Profile updated successfully!",
+        "changeEmail": "Change",
+        "emailChangeRequested": "Verification email sent to your new address. Please check your inbox.",
+        "pendingEmailCheck": "Pending verification for:",
+        "changeEmailModal": {
+            "title": "Change Email Address",
+            "description": "Enter your new email address and current password. We'll send a verification link to your new email.",
+            "newEmail": "New Email Address",
+            "currentPassword": "Current Password",
+            "submit": "Send Verification",
+            "cancel": "Cancel"
+        }
     },
     "genderOptions": {
         "female": "Female",
@@ -88,7 +99,20 @@
     },
     "dashboard": {
         "welcomeUser": "Welcome User to Dashboard",
-        "welcomeAdmin": "Welcome Admin to Dashboard"
+        "welcomeAdmin": "Welcome Admin to Dashboard",
+        "statistics": "Statistics",
+        "totalPrints": "Total Prints",
+        "totalCuts": "Total Cuts",
+        "activePrints": "Active Prints",
+        "activeCuts": "Active Cuts",
+        "completedJobs": "Completed Tasks",
+        "failedJobs": "Failed Tasks",
+        "totalUsers": "Total Users",
+        "printStatusDist": "Print Status Distribution",
+        "cutStatusDist": "Cut Status Distribution",
+        "noData": "No data available",
+        "activeTasks": "Active Tasks",
+        "myStats": "My Statistics"
     },
     "preferences": {
         "title": "Preferences",
@@ -220,6 +244,7 @@
         "error": "Error",
         "success": "Success",
         "warning": "Warning",
+        "all": "All",
         "info": "Info",
         "male": "Male",
         "female": "Female",
@@ -230,12 +255,116 @@
         "unknown": "Unknown",
         "pending": "Pending",
         "inProgress": "In Progress",
-        "completed": "Completed"
+        "completed": "Completed",
+        "edited": "Edited",
+        "paused": "Paused",
+        "waiting": "Waiting",
+        "preparing": "Preparing",
+        "printing": "Printing",
+        "postProcessing": "Post-Processing",
+        "failed": "Failed"
+    },
+    "printWorkflow": {
+        "statuses": {
+            "waiting": "Waiting",
+            "preparing": "Preparing",
+            "printing": "Printing",
+            "postProcessing": "Post-Processing",
+            "completed": "Completed",
+            "failed": "Failed"
+        },
+        "quickActions": {
+            "startPrint": "Start Print",
+            "pause": "Pause",
+            "resume": "Resume",
+            "markCompleted": "Completed",
+            "markFailed": "Failed"
+        },
+        "messageTags": {
+            "fileUploaded": "File Uploaded",
+            "slicerSettings": "Slicer Settings",
+            "printerIssue": "Printer Issue",
+            "materialChange": "Material Change",
+            "calibrationNote": "Calibration Note",
+            "general": "General"
+        },
+        "printSettings": {
+            "title": "Print Settings",
+            "printer": "Printer",
+            "material": "Material",
+            "layerHeight": "Layer Height",
+            "nozzle": "Nozzle",
+            "infill": "Infill",
+            "timeEstimate": "Time Estimate"
+        },
+        "pinMessage": "Pin to Description",
+        "systemMessage": "System",
+        "printPhases": {
+            "preparing": "Preparing",
+            "fileReady": "File Ready",
+            "slicing": "Slicing",
+            "printerSetup": "Printer Setup",
+            "printing": "Printing",
+            "cooling": "Cooling",
+            "postProcessing": "Post-Processing",
+            "testPrint": "Test Print",
+            "reprintNeeded": "Reprint Needed",
+            "done": "Done"
+        }
+    },
+    "cutWorkflow": {
+        "cutSettings": {
+            "title": "Cut Settings",
+            "machine": "Machine",
+            "speed": "Feed Rate / Speed",
+            "power": "Tool / Laser Power",
+            "timeEstimate": "Time Estimate",
+            "thickness": "Material Thickness",
+            "operationType": "Operation Type",
+            "passes": "Passes"
+        },
+        "cutPhases": {
+            "title": "Cut Phase",
+            "waiting": "Waiting",
+            "preparing": "Preparing",
+            "fileReady": "File Ready",
+            "toolpathReady": "Toolpath Ready",
+            "machineSetup": "Machine Setup",
+            "cutting": "Cutting",
+            "finishing": "Finishing",
+            "cooling": "Cooling",
+            "postProcessing": "Post-Processing",
+            "completed": "Completed",
+            "recutNeeded": "Recut Needed",
+            "done": "Done"
+        },
+        "tags": {
+            "fileUploaded": "File Uploaded",
+            "toolpathUpdated": "Toolpath Updated",
+            "machineIssue": "Machine Issue",
+            "materialIssue": "Material Issue",
+            "dimensionCheck": "Dimension Check"
+        },
+        "quickActions": {
+            "approveFile": "Approve File",
+            "generateToolpath": "Generate Toolpath",
+            "startCutting": "Start Cutting",
+            "pause": "Pause",
+            "completed": "Completed",
+            "recut": "Recut Needed"
+        }
+    },
+    "kanban": {
+        "todo": "ToDo",
+        "inProgress": "In Progress",
+        "testing": "Testing",
+        "done": "Done",
+        "onHold": "On Hold",
+        "meetings": "Meetings"
     },
     "toasts": {
         "loginSuccess": "Login successful!",
         "logoutMessage": "You have been logged out. Please login again.",
-        "fillAllFields": "Please fill in both fields.",
         "invalidEmail": "Invalid email format.",
         "invalidResponse": "Invalid response from server.",
         "emailNotVerified": "Your email is not verified. Please check your inbox.",
@@ -247,7 +376,12 @@
         "printJobUpdated": "Print job updated!",
         "printJobDeleted": "Print job deleted!",
         "printJobUpdateFailed": "Failed to update print job",
+        "printJobCreateFailed": "Failed to create print job",
+        "descriptionRequired": "Description is required.",
+        "jobDetailsFailed": "Failed to load job details",
         "printJobDeleteFailed": "Failed to delete print job",
+        "statusUpdated": "Status updated successfully!",
+        "statusUpdateFailed": "Failed to update status",
         "jobNameRequired": "Job name is required",
         "selectFilament": "Please select a filament",
         "durationPositive": "Duration must be a positive number",
@@ -268,11 +402,69 @@
         "invalidToken": "Invalid or missing token.",
         "durationRequired": "Please provide a duration before marking as Completed.",
         "incorrectPassword": "Incorrect password.",
-        "deleteAccountFailed": "Failed to delete account."
+        "deleteAccountFailed": "Failed to delete account.",
+        "welcomeBack": "Welcome back, {{name}}!",
+        "accountLocked": "Login failed. Too many attempts. Try again in {{minutes}} minutes.",
+        "userNotFound": "User not found.",
+        "fullNameLength": "Full name must be at least 3 letters.",
+        "invalidPhone": "Please enter a valid phone number.",
+        "passwordCriteria": "Password must include uppercase, lowercase, number and symbol.",
+        "fillRequiredFields": "Please complete all required fields.",
+        "registrationSuccess": "Registration successful! Please check your email to verify your account.",
+        "registrationFailed": "Registration failed.",
+        "emailAlreadyInUse": "Email already in use.",
+        "emailVerifiedSuccess": "Email verified successfully.",
+        "verificationProcessing": "Processing your verification, please wait...",
+        "verificationMissingToken": "Verification link is missing a token.",
+        "verificationFailed": "Invalid or expired verification link.",
+        "fillAllFields": "Please fill all fields.",
+        "resendSuccess": "Verification email resent!",
+        "resendFailed": "Could not resend verification email.",
+        "enterEmailResend": "Please enter your email.",
+        "emailAlreadyVerified": "Email is already verified.",
+        "emailNotRegistered": "Email not registered.",
+        "downloadSuccess": "Download successful!",
+        "downloadFailed": "Download failed",
+        "failedFetchProjects": "Failed to fetch projects",
+        "printJobCreated": "Print job created!",
+        "failedFetchMaterials": "Failed to fetch materials",
+        "selectMaterial": "Please select a material",
+        "cutJobCreated": "Cut job created!",
+        "cutJobUpdated": "Cut job updated!",
+        "updateCutJobFailed": "Failed to update cut job",
+        "cutJobDeleted": "Cut job deleted!",
+        "deleteCutJobFailed": "Failed to delete cut job",
+        "moduleNameRequired": "Module name is required",
+        "selectFile": "Please select a file",
+        "projectDeleted": "Project deleted!",
+        "projectCreated": "Project created!",
+        "projectUpdated": "Project updated!",
+        "saveProjectFailed": "Failed to save project",
+        "deleteProjectFailed": "Failed to delete project",
+        "passwordUpdated": "Password updated!",
+        "accountDeleted": "Account deleted.",
+        "genericUpdateFailed": "Update failed",
+        "loadProfileFailed": "Failed to load profile"
+    },
+    "verifyEmail": {
+        "title": "Verify Your Email",
+        "processing": "Processing your verification, please wait...",
+        "redirecting": "Redirecting you to the login page...",
+        "enterEmail": "Enter your email below to receive a new verification link.",
+        "emailAddress": "Email Address",
+        "sending": "Sending...",
+        "resendButton": "Resend Verification Email"
     },
     "security": {
+        "title": "Security",
         "password": "Password",
+        "passwordLength": "New password must be at least 6 characters.",
         "verySecure": "Very secure",
+        "strong": "Strong",
+        "medium": "Medium",
+        "weak": "Weak",
+        "generatePassword": "Generate Password",
+        "passwordCopied": "Password copied to clipboard!",
         "edit": "Edit",
         "deleteAccount": "Delete Account",
         "deleteAccountDesc": "Permanently delete your account and all associated data.",
@@ -287,7 +479,9 @@
         "deleteAccountTitle": "Delete Account",
         "deleteWarning": "After deleting your account, your data will be permanently removed. This action cannot be undone.",
         "enterPassword": "Enter your password to confirm",
-        "deleting": "Deleting..."
+        "deleting": "Deleting...",
+        "forgotPasswordText": "Forgot password? Send ",
+        "resetLinkPart": "reset link"
     },
     "notifications": {
         "title": "Notifications",
@@ -367,6 +561,7 @@
     "newPrint": {
         "title": "New Print Job",
         "jobName": "Job Name",
+        "description": "Description",
         "filament": "Filament",
         "status": "Status",
         "duration": "Duration (HH:mm:ss)",
@@ -402,6 +597,14 @@
         "resetButton": "Update Password",
         "resetting": "Updating...",
         "backToLogin": "Back to Login"
+    },
+    "systemMessages": {
+        "phaseUpdated": "Phase updated to {{phase}}",
+        "taskStarted": "started the task.",
+        "taskPaused": "paused the task.",
+        "taskResumed": "resumed the task.",
+        "taskCompleted": "completed the task.",
+        "taskRecut": "requested recut."
     },
     "chat": {
         "title": "MechBot",
@@ -465,5 +668,10 @@
                 }
             }
         }
+    },
+    "notFound": {
+        "title": "Page Not Found",
+        "description": "Sorry, the page you are looking for does not exist or may have been moved.",
+        "backHome": "Back to Home"
     }
 }

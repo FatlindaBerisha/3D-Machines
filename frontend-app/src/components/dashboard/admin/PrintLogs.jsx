@@ -1,159 +1,309 @@
 import React, { useEffect, useState, useRef } from "react";
-import ReactDOM from "react-dom";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
-import Pagination from "../Pagination";
+import { FaEdit, FaTrash, FaClipboardList, FaCalendarAlt, FaPrint, FaFlask, FaCheckCircle, FaPauseCircle } from "react-icons/fa";
+import EditPrintJobForm from "../user/EditPrintJobForm";
+import PrintJobDetailsModal from "../user/PrintJobDetailsModal";
+
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import api from "../../../utils/axiosClient";
-import "../../styles/PrintFilament.css";
+import "../../styles/PrintLog.css";
 
 export default function PrintLogs() {
   const { t, i18n } = useTranslation();
   const [printJobs, setPrintJobs] = useState([]);
   const [users, setUsers] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState(new Set());
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const jobsPerPage = 5;
-  const dropdownRef = useRef();
-  const iconRef = useRef(null);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [filaments, setFilaments] = useState([]);
 
-  // ------------------------------
-  // FETCH ALL DATA (axiosClient)
-  // ------------------------------
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [jobsRes, userRes, filamentRes] = await Promise.all([
-          api.get("/printjob"),
-          api.get("/user"),
-          api.get("/filament"),
-        ]);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-        setPrintJobs(jobsRes.data);
-        setUsers(userRes.data);
-        setFilaments(filamentRes.data);
-      } catch (err) {
-        toast.error(t('toasts.loadDataFailed'));
-      }
+  // Filtering
+  const [selectedUser, setSelectedUser] = useState(""); // User ID to filter by, "" for all
+  const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "");
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    id: null,
+    jobName: "",
+    filamentId: "",
+    status: "Pending",
+    duration: "",
+    description: "",
+  });
+
+  const toastIdRef = useRef(null);
+  const [selectedJobId, setSelectedJobId] = useState(null);
+
+  function openDetails(jobId) {
+    setSelectedJobId(jobId);
+  }
+
+  function closeDetails() {
+    setSelectedJobId(null);
+  }
+
+  // FETCH DATA (axios)
+  async function loadData() {
+    try {
+      const [jobsRes, userRes, filamentRes] = await Promise.all([
+        api.get("/printjob"),
+        api.get("/user"),
+        api.get("/filament"),
+      ]);
+
+      // Merge data for easier display
+      const filamentMap = {};
+      filamentRes.data.forEach(f => filamentMap[f.id] = f.name);
+
+      const userMap = {};
+      userRes.data.forEach(u => userMap[u.id] = u.fullName || u.username);
+
+      const jobsWithDetails = jobsRes.data.map(job => ({
+        ...job,
+        filamentName: filamentMap[job.filamentId] || "-",
+        userFullName: userMap[job.userId] || job.user?.fullName || "Unknown"
+      }));
+
+      setPrintJobs(jobsWithDetails);
+      setUsers(userRes.data);
+      setFilaments(filamentRes.data);
+    } catch (err) {
+      toast.error(t('toasts.loadDataFailed'));
     }
+  }
 
+  useEffect(() => {
     loadData();
   }, []);
 
-  function getFilamentNameById(id) {
-    const filament = filaments.find((f) => f.id === id);
-    return filament ? filament.name : "-";
-  }
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  function toggleUserDropdown() {
-    if (!showUserDropdown && iconRef.current) {
-      const rect = iconRef.current.getBoundingClientRect();
-      setDropdownPos({
-        top: rect.bottom + window.scrollY + 6,
-        left: rect.left + window.scrollX,
-      });
-    }
-    setShowUserDropdown((prev) => !prev);
-  }
-
   // ------------------------------
-  // Close dropdown on outside click
+  // FILTER
   // ------------------------------
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target) &&
-        iconRef.current &&
-        !iconRef.current.contains(event.target)
-      ) {
-        setShowUserDropdown(false);
+  const filteredJobs = printJobs.filter(j => {
+    const userMatch = selectedUser ? j.userId === parseInt(selectedUser, 10) : true;
+    const statusMatch = selectedStatus ? j.status === selectedStatus : true;
+    return userMatch && statusMatch;
+  });
+
+  // EDIT MODAL OPEN
+  function openEditModal(job) {
+    let durationMinutes = "";
+
+    if (job.duration) {
+      const parts = job.duration.split(":");
+      if (parts.length === 3) {
+        durationMinutes = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
-  // ------------------------------
-  // Checkbox user filter
-  // ------------------------------
-  function handleUserCheckboxChange(userId) {
-    setSelectedUsers((prev) => {
-      const updated = new Set(prev);
-      updated.has(userId) ? updated.delete(userId) : updated.add(userId);
-      return updated;
+    setEditForm({
+      id: job.id,
+      jobName: job.jobName,
+      filamentId: String(job.filamentId),
+      status: job.status,
+      duration: durationMinutes,
+      description: job.description || "",
     });
-    setCurrentPage(1);
+
+    setIsEditing(true);
   }
 
-  // ------------------------------
-  // Filtering print jobs
-  // ------------------------------
-  const filteredPrintJobs =
-    selectedUsers.size === 0
-      ? printJobs
-      : printJobs.filter((job) =>
-        selectedUsers.has(job.userId || job.user?.id)
-      );
+  function closeEditModal() {
+    setIsEditing(false);
+    setEditForm({
+      id: null,
+      jobName: "",
+      filamentId: "",
+      status: "Pending",
+      duration: "",
+      description: "",
+    });
+  }
 
-  const totalPages = Math.ceil(filteredPrintJobs.length / jobsPerPage);
-  const currentJobs = filteredPrintJobs.slice(
-    (currentPage - 1) * jobsPerPage,
-    currentPage * jobsPerPage
-  );
+  // Edit Form Change
+  function handleEditChange(e) {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  }
 
-  function formatDuration(durationStr) {
-    if (!durationStr) return "-";
-    if (typeof durationStr === "string" && durationStr.includes(":"))
-      return durationStr;
-
-    const minutes = parseInt(durationStr, 10);
-    if (isNaN(minutes)) return "-";
-
+  function formatDuration(minutesStr) {
+    if (!minutesStr) return null;
+    const minutes = parseInt(minutesStr, 10);
     const hours = Math.floor(minutes / 60).toString().padStart(2, "0");
     const mins = (minutes % 60).toString().padStart(2, "0");
-
     return `${hours}:${mins}:00`;
   }
 
-  function getStatusTranslation(status) {
-    const statusMap = {
-      "Pending": t('common.pending'),
-      "In Progress": t('common.inProgress'),
-      "Completed": t('common.completed')
+  // SUBMIT EDIT (axios)
+  async function handleEditSubmit(e) {
+    e.preventDefault();
+
+    if (!editForm.jobName.trim()) return toast.error(t('toasts.jobNameRequired'));
+    if (!editForm.filamentId) return toast.error(t('toasts.selectFilament'));
+
+    if (editForm.duration && (isNaN(editForm.duration) || editForm.duration < 0)) {
+      return toast.error(t('toasts.durationPositive'));
+    }
+
+    const payload = {
+      id: editForm.id,
+      jobName: editForm.jobName,
+      filamentId: Number(editForm.filamentId),
+      status: editForm.status,
+      duration:
+        editForm.status === "Pending"
+          ? null
+          : editForm.duration
+            ? formatDuration(editForm.duration)
+            : null,
+      description: editForm.description,
     };
-    return statusMap[status] || status;
+
+    try {
+      await api.put(`/printjob/${editForm.id}`, payload);
+      toast.success(t('toasts.printJobUpdated'));
+
+      loadData(); // Reload all data
+      closeEditModal();
+    } catch (err) {
+      toast.error(err?.response?.data?.error || t('toasts.printJobUpdateFailed'));
+    }
   }
 
-  function formatDate(dateString) {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "-";
+  // DELETE (axios)
+  function showDeleteConfirm(id) {
+    if (toastIdRef.current) {
+      toast.dismiss(toastIdRef.current);
+      toastIdRef.current = null;
+    }
 
+    toastIdRef.current = toast.info(
+      <div className="toast-confirmation">
+        <p>{t('printLogs.deleteConfirm')}</p>
+        <div className="btn-group">
+          <button
+            className="confirm-yes"
+            onClick={() => {
+              handleDelete(id);
+              toast.dismiss(toastIdRef.current);
+              toastIdRef.current = null;
+            }}
+          >
+            {t('printLogs.yes')}
+          </button>
+          <button
+            className="confirm-no"
+            onClick={() => {
+              toast.dismiss(toastIdRef.current);
+              toastIdRef.current = null;
+            }}
+          >
+            {t('printLogs.no')}
+          </button>
+        </div>
+      </div>,
+      { autoClose: false, closeOnClick: false, closeButton: false, icon: true }
+    );
+  }
+
+  async function handleDelete(id) {
+    try {
+      await api.delete(`/printjob/${id}`);
+      toast.success(t('toasts.printJobDeleted'));
+      setPrintJobs(prev => prev.filter(job => job.id !== id));
+    } catch (err) {
+      toast.error(t('toasts.printJobDeleteFailed'));
+    }
+  }
+
+  // DRAG AND DROP HANDLERS
+  function handleDragStart(e, jobId) {
+    e.dataTransfer.setData("jobId", jobId);
+  }
+
+  async function handleDrop(e, newStatus) {
+    e.preventDefault();
+    const jobId = parseInt(e.dataTransfer.getData("jobId"), 10);
+    const job = printJobs.find((j) => j.id === jobId);
+
+    if (!job || job.status === newStatus) return;
+
+    // Optimistic Update
+    const originalStatus = job.status;
+    setPrintJobs((prev) =>
+      prev.map((j) => (j.id === jobId ? { ...j, status: newStatus } : j))
+    );
+
+    try {
+      const payload = {
+        id: job.id,
+        jobName: job.jobName,
+        filamentId: job.filamentId,
+        status: newStatus,
+        duration: job.duration,
+        description: job.description,
+      };
+
+      await api.put(`/printjob/${job.id}`, payload);
+      toast.success(t('toasts.statusUpdated'));
+    } catch (err) {
+      // Revert on failure
+      setPrintJobs((prev) =>
+        prev.map((j) => (j.id === jobId ? { ...j, status: originalStatus } : j))
+      );
+      toast.error(t('toasts.statusUpdateFailed'));
+    }
+  }
+
+  // FORMATTERS
+  function getStatusTranslation(status) {
+    if (status === "Pending") return t('kanban.todo') || "ToDo";
+    if (status === "In Progress") return t('kanban.inProgress') || "In Progress";
+    if (status === "Testing") return t('kanban.testing') || "Testing";
+    if (status === "Completed") return t('kanban.done') || "Done";
+    if (status === "Paused") return t('kanban.onHold') || "On Hold";
+    if (status === "Meetings") return t('kanban.meetings') || "Meetings";
+    return status;
+  }
+
+  function getStatusIcon(status) {
+    const style = { color: 'white', marginRight: '8px', fontSize: '18px' };
+    if (status === "Pending") return <FaClipboardList style={style} />;
+    if (status === "Meetings") return <FaCalendarAlt style={style} />;
+    if (status === "In Progress") return <FaPrint style={style} />;
+    if (status === "Testing") return <FaFlask style={style} />;
+    if (status === "Completed") return <FaCheckCircle style={style} />;
+    if (status === "Paused") return <FaPauseCircle style={style} />;
+    return null;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return "-";
     const locale = i18n.language === 'sq' ? 'sq-AL' : i18n.language === 'de' ? 'de-DE' : 'en-GB';
-    return date.toLocaleDateString(locale, {
+    return new Date(dateStr).toLocaleDateString(locale, {
       day: "2-digit",
       month: "short",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
     });
   }
 
-  // ------------------------------
-  // Export to Excel
-  // ------------------------------
+  // EXPORT TO EXCEL
   function exportToExcel() {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Print Jobs");
+    const worksheet = workbook.addWorksheet(t('printLogs.title') || "All Print Jobs");
 
-    const header = ["User", "Job Name", "Filament", "Status", "Duration", "Created At"];
+    const header = [
+      t('printLogs.user'),
+      t('printLogs.jobName'),
+      t('printLogs.filament'),
+      t('printLogs.status'),
+      t('printLogs.duration'),
+      t('printLogs.createdAt')
+    ];
     const headerRow = worksheet.addRow(header);
 
     headerRow.eachCell((cell) => {
@@ -162,180 +312,201 @@ export default function PrintLogs() {
         pattern: "solid",
         fgColor: { argb: "FF4374BA" },
       };
-      cell.font = {
-        bold: true,
-        size: 12,
-        color: { argb: "FFFFFFFF" },
-      };
-      cell.border = {
-        top: { style: "thin" },
-        bottom: { style: "thin" },
-        left: { style: "thin" },
-        right: { style: "thin" },
-      };
+      cell.font = { bold: true, size: 12, color: { argb: "FFFFFFFF" } };
     });
 
-    worksheet.autoFilter = { from: "A1", to: "F1" };
-
-    const sortedJobs = [...filteredPrintJobs].sort((a, b) =>
-      (a.userFullName || a.user?.fullName || "").localeCompare(
-        b.userFullName || b.user?.fullName || ""
-      )
-    );
-
-    sortedJobs.forEach((job) => {
+    filteredJobs.forEach((job) => {
       worksheet.addRow([
-        job.userFullName ||
-        job.user?.fullName ||
-        users.find((u) => u.id === (job.userId || job.user?.id))?.fullName ||
-        "Unknown",
-        job.jobName || "-",
-        job.filamentName || job.filament?.name || getFilamentNameById(job.filamentId),
-        job.status || job.Status || "-",
-        formatDuration(job.duration || job.Duration),
-        formatDate(job.createdAt || job.CreatedAt),
+        job.userFullName,
+        job.jobName,
+        job.filamentName,
+        getStatusTranslation(job.status),
+        job.durationFormatted || "-",
+        formatDate(job.createdAt),
       ]);
     });
 
     worksheet.columns = [
-      { width: 20 },
+      { width: 25 },
       { width: 25 },
       { width: 20 },
       { width: 15 },
       { width: 15 },
-      { width: 18 },
+      { width: 20 },
     ];
 
     workbook.xlsx.writeBuffer().then((buffer) => {
       saveAs(
-        new Blob([buffer], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        }),
-        "all-print-jobs.xlsx"
+        new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+        "admin-print-jobs.xlsx"
       );
     });
   }
 
+  // UI
   return (
-    <div className="printjobs-container">
-      <h2 className="printjobs-title">{t('printLogs.title')}</h2>
+    <div className="printlog-container">
+      <div className="admin-header-controls" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', gap: '20px' }}>
+        <h2 className="printlog-title" style={{ margin: 0 }}>
+          {t('printLogs.title')}
+        </h2>
 
-      {printJobs.length === 0 ? (
-        <p className="no-printjobs-message">{t('printLogs.noPrintJobs')}</p>
-      ) : (
-        <>
-          <div style={{ marginBottom: "8px", textAlign: "right" }}>
-            <button
-              className="export-excel-btn"
-              onClick={exportToExcel}
-              title={t('printLogs.exportToExcel')}
+        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <select
+              className="user-filter-select"
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              style={{ padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '180px', fontSize: '14px', cursor: 'pointer' }}
             >
-              <i className="bi bi-file-earmark-excel-fill"></i> {t('printLogs.export')}
-            </button>
+              <option value="" hidden>{t('common.all')}</option>
+              {users
+                .sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""))
+                .map(u => (
+                  <option key={u.id} value={u.id}>{u.fullName}</option>
+                ))}
+            </select>
+            {selectedUser && (
+              <button
+                onClick={() => setSelectedUser("")}
+                className="icon-btn"
+                title={t('common.all')}
+                style={{ padding: '8px', color: '#666', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <i className="bi bi-x-lg" style={{ fontSize: '14px' }}></i>
+              </button>
+            )}
+
+            <select
+              className="status-filter-select"
+              value={selectedStatus}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedStatus(val);
+                if (val) searchParams.set("status", val);
+                else searchParams.delete("status");
+                setSearchParams(searchParams);
+              }}
+              style={{ padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '150px', fontSize: '14px', cursor: 'pointer' }}
+            >
+              <option value="">{t('common.allStatuses') || "All Statuses"}</option>
+              {["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"].map(s => (
+                <option key={s} value={s}>{getStatusTranslation(s)}</option>
+              ))}
+            </select>
+            {selectedStatus && (
+              <button
+                onClick={() => {
+                  setSelectedStatus("");
+                  searchParams.delete("status");
+                  setSearchParams(searchParams);
+                }}
+                className="icon-btn"
+                title={t('common.all')}
+                style={{ padding: '8px', color: '#666', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <i className="bi bi-x-lg" style={{ fontSize: '14px' }}></i>
+              </button>
+            )}
           </div>
 
-          <table className="printjobs-table">
-            <thead>
-              <tr>
-                <th>
-                  <div className="printjobs-user-filter">
-                    {t('printLogs.user')}
-                    <span
-                      style={{ marginLeft: '10px' }}
-                      ref={iconRef}
-                      onClick={toggleUserDropdown}
-                      className="printjobs-filter-icon"
-                      title={t('printLogs.filterUsers')}
-                      role="button"
-                      tabIndex={0}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter" || e.key === " ") toggleUserDropdown();
-                      }}
-                    >
-                      <i className="bi bi-arrow-down-circle-fill"></i>
-                    </span>
+          <button className="export-excel-btn" onClick={exportToExcel} style={{ marginBottom: 0 }}>
+            <i className="bi bi-file-earmark-excel-fill"></i> {t('printLogs.export')}
+          </button>
+        </div>
+      </div>
 
-                    {showUserDropdown &&
-                      ReactDOM.createPortal(
-                        <div
-                          ref={dropdownRef}
-                          className="printjobs-user-dropdown"
-                          style={{
-                            position: "absolute",
-                            top: dropdownPos.top,
-                            left: dropdownPos.left,
-                          }}
-                        >
-                          {users.map((user) => (
-                            <label
-                              key={user.id}
-                              style={{ display: "block", cursor: "pointer" }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedUsers.has(user.id)}
-                                onChange={() => handleUserCheckboxChange(user.id)}
-                                style={{ marginRight: "8px" }}
-                              />
-                              {user.fullName || user.username || "Unknown User"}
-                            </label>
-                          ))}
-                        </div>,
-                        document.body
-                      )}
-                  </div>
-                </th>
-
-                <th>{t('printLogs.jobName')}</th>
-                <th>{t('printLogs.filament')}</th>
-                <th>{t('printLogs.status')}</th>
-                <th>{t('printLogs.duration')}</th>
-                <th>{t('printLogs.createdAt')}</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {currentJobs.map((job) => (
-                <tr key={job.id}>
-                  <td>
-                    {job.userFullName ||
-                      job.user?.fullName ||
-                      users.find((u) => u.id === (job.userId || job.user?.id))
-                        ?.fullName ||
-                      "-"}
-                  </td>
-                  <td>{job.jobName || "-"}</td>
-                  <td>
-                    {job.filamentName ||
-                      job.filament?.name ||
-                      getFilamentNameById(job.filamentId)}
-                  </td>
-
-                  <td>
-                    <span
-                      className={`printlog-status printlog-status-${(job.status || job.Status || "")
-                        .toLowerCase()
-                        .replace(" ", "-")
-                        }`}
-                    >
-                      {getStatusTranslation(job.status || job.Status || "-")}
-                    </span>
-                  </td>
-
-                  <td>{formatDuration(job.duration || job.Duration)}</td>
-                  <td>{formatDate(job.createdAt || job.CreatedAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </>
+      {selectedJobId && (
+        <PrintJobDetailsModal
+          jobId={selectedJobId}
+          onClose={closeDetails}
+          onUpdate={loadData}
+        />
       )}
+
+      {isEditing && (
+        <div className="modal-overlay" onClick={closeEditModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <EditPrintJobForm
+              formData={editForm}
+              filaments={filaments}
+              onChange={handleEditChange}
+              onCancel={closeEditModal}
+              onSubmit={handleEditSubmit}
+              editingId={editForm.id}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="kanban-board">
+        {["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"].map((columnStatus) => {
+          const columnJobs = filteredJobs.filter((job) => {
+            if (columnStatus === "Pending") return job.status === "Pending" || job.status === "Waiting";
+            if (columnStatus === "In Progress") return job.status === "In Progress" || job.status === "Preparing" || job.status === "Printing" || job.status === "Post-Processing";
+            if (columnStatus === "Completed") return job.status === "Completed" || job.status === "Done";
+            if (columnStatus === "Paused") return job.status === "Paused" || job.status === "Failed";
+            return job.status === columnStatus;
+          });
+
+          return (
+            <div
+              key={columnStatus}
+              className={`kanban-column column-${columnStatus.toLowerCase().replace(" ", "-")}`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => handleDrop(e, columnStatus)}
+            >
+              <h3>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {getStatusIcon(columnStatus)}
+                  {getStatusTranslation(columnStatus)}
+                </div>
+                <span>({columnJobs.length})</span>
+              </h3>
+              <div className="kanban-column-content">
+                {columnJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="kanban-card"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, job.id)}
+                    onClick={() => openDetails(job.id)}
+                  >
+                    <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <span className="job-name">{job.jobName}</span>
+                      <div className="card-actions" style={{ display: 'flex', gap: '4px', minWidth: '50px', justifyContent: 'flex-end' }}>
+                        <button onClick={(e) => { e.stopPropagation(); openEditModal(job); }} className="icon-btn edit">
+                          <FaEdit />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); showDeleteConfirm(job.id); }} className="icon-btn delete">
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="card-body">
+                      {job.filamentName && (
+                        <div className="card-tag">
+                          {job.filamentName}
+                        </div>
+                      )}
+
+                      <div className="card-footer">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span className="card-date">{formatDate(job.createdAt)}</span>
+                          <span style={{ fontSize: '10px', color: '#666', fontWeight: 600 }}>{job.userFullName}</span>
+                        </div>
+                        <div className="user-avatar-mini" title={job.userFullName}>
+                          {job.userFullName ? job.userFullName.split(' ').map(n => n[0]).join('').toUpperCase() : '?'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

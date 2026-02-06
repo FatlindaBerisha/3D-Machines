@@ -1,0 +1,90 @@
+.not-found-container {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    font-family: 'Exo', sans-serif;
+}
+
+.not-found-content {
+    text-align: center;
+    z-index: 2;
+    padding: 35px 40px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+}
+
+.not-found-logo {
+    height: 45px;
+    margin-bottom: 30px;
+}
+
+.not-found-icon-container {
+    font-size: 80px;
+    margin-bottom: 20px;
+    color: #3f51b5;
+}
+
+.not-found-title {
+    font-size: 26px;
+    font-family: 'Orbitron', sans-serif;
+    color: #345ea0;
+    margin: 10px 0 20px 0;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.not-found-text {
+    font-size: 16px;
+    color: #64748b;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.not-found-btn {
+    background-color: #4374ba;
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+}
+
+.not-found-btn:hover {
+    background-color: #345ea0;
+}
+
+.not-found-btn:active {
+    transform: translateY(0);
+}
+
+[data-theme='dark'] .not-found-container {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+[data-theme='dark'] .not-found-content {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .not-found-title {
+    color: #f1f5f9;
+}
+
+[data-theme='dark'] .not-found-text {
+    color: #94a3b8;
+}

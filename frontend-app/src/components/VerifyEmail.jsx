@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import api from "../utils/axiosClient";
 import { toast } from "react-toastify";
 
 export default function VerifyEmail() {
+  const { t, i18n } = useTranslation();
   const [status, setStatus] = useState("processing");
-  const [message, setMessage] = useState("Processing your verification, please wait...");
+  const [message, setMessage] = useState(t('toasts.verificationProcessing'));
 
   const [resendEmail, setResendEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
@@ -13,12 +15,24 @@ export default function VerifyEmail() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const token = params.get("token");
+  const lng = params.get("lng");
+
+  useEffect(() => {
+    if (lng && i18n.language !== lng) {
+      i18n.changeLanguage(lng);
+    }
+  }, [lng, i18n]);
 
   useEffect(() => {
     async function verify() {
       try {
         const res = await api.get(`/auth/verify-email?token=${token}`);
-        const msg = res?.data?.message || "Email verified! You can now log in.";
+        let msg = res?.data?.message;
+
+        // Map common backend success messages to translation
+        if (!msg || msg === "Email verified successfully." || msg === "Email verified! You can now log in.") {
+          msg = t('toasts.emailVerifiedSuccess');
+        }
 
         setStatus("success");
         setMessage(msg);
@@ -28,11 +42,21 @@ export default function VerifyEmail() {
           navigate("/");
         }, 1000);
       } catch (err) {
-        const backendMsg = err?.response?.data;
-        const finalMsg =
-          typeof backendMsg === "string"
-            ? backendMsg
-            : backendMsg?.message || "Invalid or expired verification link.";
+        let backendMsg = err?.response?.data;
+        if (typeof backendMsg !== "string") {
+          backendMsg = backendMsg?.message || backendMsg?.error || JSON.stringify(backendMsg);
+        }
+
+        let finalMsg = typeof backendMsg === 'string' ? backendMsg : "";
+        const lowerMsg = finalMsg.toLowerCase();
+
+        if (lowerMsg.includes("invalid token")) {
+          finalMsg = t('toasts.invalidToken');
+        } else if (lowerMsg.includes("email is already verified") || lowerMsg.includes("already verified")) {
+          finalMsg = t('toasts.emailAlreadyVerified');
+        } else if (!finalMsg) {
+          finalMsg = t('toasts.verificationFailed');
+        }
 
         setStatus("error");
         setMessage(finalMsg);
@@ -44,27 +68,36 @@ export default function VerifyEmail() {
       verify();
     } else {
       setStatus("error");
-      setMessage("Verification link is missing a token.");
+      setMessage(t('toasts.verificationMissingToken'));
     }
   }, [token, navigate]);
 
   async function handleResend() {
     if (!resendEmail) {
-      toast.error("Please enter your email.");
+      toast.error(t('toasts.enterEmailResend'));
       return;
     }
 
     try {
       setIsResending(true);
-      const res = await api.post("/auth/resend-verification", { email: resendEmail });
-      const msg = res?.data?.message || "A new verification email has been sent.";
+      const res = await api.post("/auth/resend-verification", { email: resendEmail, language: i18n.language });
+      const msg = res?.data?.message || t('toasts.resendSuccess');
       toast.success(msg);
     } catch (err) {
-      const backendMsg = err?.response?.data;
-      const finalMsg =
-        typeof backendMsg === "string"
-          ? backendMsg
-          : backendMsg?.message || "Could not resend verification email.";
+      let backendMsg = err?.response?.data;
+      if (typeof backendMsg !== "string") {
+        backendMsg = backendMsg?.message || backendMsg?.error || JSON.stringify(backendMsg);
+      }
+
+      let finalMsg = typeof backendMsg === 'string' ? backendMsg : "";
+      const lowerMsg = finalMsg.toLowerCase();
+
+      if (lowerMsg.includes("email not registered") || lowerMsg.includes("user not found")) {
+        finalMsg = t('toasts.emailNotRegistered');
+      } else if (!finalMsg) {
+        finalMsg = t('toasts.resendFailed');
+      }
+
       toast.error(finalMsg);
     } finally {
       setIsResending(false);
@@ -74,7 +107,7 @@ export default function VerifyEmail() {
   return (
     <div className="forgot-wrapper">
       <form className="forgot-form" onSubmit={(e) => e.preventDefault()}>
-        <h2 className="forgot-title">Verify Your Email</h2>
+        <h2 className="forgot-title">{t('verifyEmail.title')}</h2>
 
         {status === "processing" && (
           <p className="forgot-description">{message}</p>
@@ -84,7 +117,7 @@ export default function VerifyEmail() {
           <>
             <p className="forgot-description">{message}</p>
             <p className="forgot-description" style={{ marginTop: "10px" }}>
-              Redirecting you to the login page...
+              {t('verifyEmail.redirecting')}
             </p>
           </>
         )}
@@ -92,7 +125,7 @@ export default function VerifyEmail() {
         {status === "error" && (
           <>
             <p className="forgot-description" style={{ marginTop: "10px" }}>
-              Enter your email below to receive a new verification link.
+              {t('verifyEmail.enterEmail')}
             </p>
 
             <div className="input-group" style={{ marginTop: "16px" }}>
@@ -105,7 +138,7 @@ export default function VerifyEmail() {
                 required
                 disabled={isResending}
               />
-              <label htmlFor="verify-email-resend">Email Address</label>
+              <label htmlFor="verify-email-resend">{t('verifyEmail.emailAddress')}</label>
             </div>
 
             <button
@@ -114,7 +147,7 @@ export default function VerifyEmail() {
               onClick={handleResend}
               disabled={isResending}
             >
-              {isResending ? "Sending..." : "Resend Verification Email"}
+              {isResending ? t('verifyEmail.sending') : t('verifyEmail.resendButton')}
             </button>
           </>
         )}

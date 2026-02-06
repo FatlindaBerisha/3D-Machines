@@ -12,7 +12,7 @@ import logo from '../assets/logo.png';
 import api from "../utils/axiosClient";
 
 export default function RegisterForm() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -55,37 +55,37 @@ export default function RegisterForm() {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
     if (!nameRegex.test(fullName)) {
-      toast.error("Full name must be at least 3 letters.");
+      toast.error(t('toasts.fullNameLength'));
       setLoading(false);
       return;
     }
 
     if (!phone || phone.length < 8) {
-      toast.error("Please enter a valid phone number.");
+      toast.error(t('toasts.invalidPhone'));
       setLoading(false);
       return;
     }
 
     if (!emailRegex.test(email)) {
-      toast.error("Invalid email format.");
+      toast.error(t('toasts.invalidEmail'));
       setLoading(false);
       return;
     }
 
     if (!passwordRegex.test(password)) {
-      toast.error("Password must include uppercase, lowercase, number and symbol.");
+      toast.error(t('toasts.passwordCriteria'));
       setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error(t('toasts.passwordsDoNotMatch'));
       setLoading(false);
       return;
     }
 
     if (!profession || !gender) {
-      toast.error("Please complete all required fields.");
+      toast.error(t('toasts.fillRequiredFields'));
       setLoading(false);
       return;
     }
@@ -99,19 +99,30 @@ export default function RegisterForm() {
         profession,
         email,
         password,
-        gender
+        gender,
+        language: i18n.language // Added language
       };
 
       await api.post("/auth/register", payload);
 
-      toast.success("Registration successful! Please check your email to verify your account.");
+      toast.success(t('toasts.registrationSuccess'));
       navigate("/");
     } catch (err) {
-      toast.error(
-        err?.response?.data ||
-        err?.response?.data?.message ||
-        "Registration failed."
-      );
+      let backendMsg = err?.response?.data;
+      if (typeof backendMsg !== "string") {
+        backendMsg = backendMsg?.message || backendMsg?.error || JSON.stringify(backendMsg);
+      }
+
+      let finalMsg = typeof backendMsg === 'string' ? backendMsg : "";
+      const lowerMsg = finalMsg.toLowerCase();
+
+      if (lowerMsg.includes("email already in use") || lowerMsg.includes("email already exists")) {
+        finalMsg = t('toasts.emailAlreadyInUse');
+      } else if (!finalMsg) {
+        finalMsg = t('toasts.registrationFailed');
+      }
+
+      toast.error(finalMsg);
     } finally {
       setLoading(false);
     }

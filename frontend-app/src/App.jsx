@@ -5,6 +5,7 @@ import Register from "./components/Register";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import VerifyEmail from "./components/VerifyEmail";
+import ConfirmEmailChange from "./components/ConfirmEmailChange";
 
 export default function App() {
 	return (
@@ -16,8 +17,8 @@ export default function App() {
 				<Route path="/forgot-password" element={<ForgotPassword />} />
 				<Route path="/reset-password" element={<ResetPassword />} />
 				<Route path="/verify-email" element={<VerifyEmail />} />
+				<Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
 			</Routes>
 		</Router>
 	);
 }
-

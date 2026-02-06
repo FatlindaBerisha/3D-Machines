@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 import { getUser } from "../../utils/storage";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
@@ -7,6 +9,7 @@ import "../styles/Layout.css";
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [role, setRole] = useState(null);
 
   useEffect(() => {
@@ -18,7 +21,15 @@ export default function DashboardLayout() {
     }
 
     setRole(user.role);
-  }, [navigate]);
+
+    // Check for Welcome Toast
+    const welcomeName = localStorage.getItem('welcomeName');
+    if (welcomeName) {
+      toast.success(t('toasts.welcomeBack', { name: welcomeName }) || `Welcome back, ${welcomeName}!`);
+      localStorage.removeItem('welcomeName');
+    }
+
+  }, [navigate, t]);
 
   if (!role) return null;
 

@@ -22,10 +22,43 @@
     align-items: center;
     justify-content: center;
     font-size: 24px;
+    position: relative;
 }
 
 .chat-fab i.bi-chat-dots-fill {
     font-size: 24px;
+}
+
+/* Notification Badge */
+.chat-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 .chat-window {
@@ -56,18 +89,25 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex-wrap: nowrap;
+    gap: 12px;
 }
 
 .chat-header h3 {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
 }
 
 .header-actions {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
 }
 
 .icon-btn {
@@ -82,6 +122,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.icon-btn.close-btn {
+    z-index: 1003;
 }
 
 .icon-btn:hover {

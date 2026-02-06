@@ -1,5 +1,6 @@
 import React from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import "../../styles/PrintFilament.css";
 
 export default function EditPrintJobForm({
@@ -9,11 +10,13 @@ export default function EditPrintJobForm({
   onCancel,
   onSubmit,
 }) {
+  const { t } = useTranslation();
+
   function handleSubmit(e) {
     e.preventDefault();
 
     if (formData.status === "Completed" && !formData.duration.trim()) {
-      toast.error("Please provide a duration before marking as Completed.");
+      toast.error(t('toasts.durationRequired'));
       return;
     }
     onSubmit(e);
@@ -79,7 +82,19 @@ export default function EditPrintJobForm({
         />
         <label htmlFor="duration">Duration (minutes)</label>
       </div>
-      
+
+      <div className="user-input-group">
+        <textarea
+          name="description"
+          value={formData.description || ""}
+          onChange={onChange}
+          placeholder=" "
+          autoComplete="off"
+          rows="3"
+        />
+        <label htmlFor="description">{t('filaments.description')}</label>
+      </div>
+
       <div className="printlog-buttons">
         <button type="button" className="printlog-cancel" onClick={onCancel}>
           Cancel

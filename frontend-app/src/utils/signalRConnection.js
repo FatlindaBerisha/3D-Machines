@@ -10,7 +10,7 @@ export function createConnection(token) {
     if (!token) return null;
 
     connection = new signalR.HubConnectionBuilder()
-        .withUrl("https://localhost:7178/hub/notifications", {
+        .withUrl("http://localhost:5151/hub/notifications", {
             accessTokenFactory: () => token
         })
         .withAutomaticReconnect()
@@ -18,4 +18,3 @@ export function createConnection(token) {
 
     return connection;
 }
- 

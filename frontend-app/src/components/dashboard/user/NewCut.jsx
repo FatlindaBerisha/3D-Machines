@@ -10,8 +10,7 @@ export default function NewCut() {
     const [form, setForm] = useState({
         jobName: "",
         materialId: "",
-        status: "",
-        duration: "",
+        description: "" // Added description
     });
 
     const [materials, setMaterials] = useState([]);
@@ -23,7 +22,7 @@ export default function NewCut() {
                 const res = await api.get("/materialsuser");
                 setMaterials(res.data);
             } catch (err) {
-                toast.error("Failed to fetch materials");
+                toast.error(t('toasts.failedFetchMaterials'));
             }
         }
 
@@ -40,53 +39,32 @@ export default function NewCut() {
             }));
         }
 
-        if (name === "duration") {
-            if (value === "" || /^[0-9\b]+$/.test(value)) {
-                return setForm((prev) => ({ ...prev, [name]: value }));
-            }
-            return;
-        }
+        // Removed duration logic
 
         setForm((prev) => ({ ...prev, [name]: value }));
-    }
-
-    function formatDuration(minutesStr) {
-        if (!minutesStr) return null;
-
-        const minutes = parseInt(minutesStr, 10);
-        if (isNaN(minutes) || minutes < 0) return null;
-
-        const hours = Math.floor(minutes / 60).toString().padStart(2, "0");
-        const mins = (minutes % 60).toString().padStart(2, "0");
-
-        return `${hours}:${mins}:00`;
     }
 
     async function handleSubmit(e) {
         e.preventDefault();
 
         if (!form.jobName.trim()) return toast.error(t('toasts.jobNameRequired'));
-        if (!form.materialId) return toast.error("Please select a material");
+        if (!form.materialId) return toast.error(t('toasts.selectMaterial'));
+        if (!form.description.trim()) return toast.error(t('toasts.descriptionRequired') || "Description is required");
 
-        if (form.duration && (isNaN(form.duration) || parseInt(form.duration, 10) < 0)) {
-            return toast.error(t('toasts.durationPositive'));
-        }
-
-        if (form.status === "Completed" && !form.duration) {
-            return toast.error("Duration is required when status is Completed");
-        }
+        // Removed duration/status validation
 
         const payload = {
             jobName: form.jobName,
             materialId: Number(form.materialId),
-            status: form.status || "Pending",
-            duration: form.duration ? formatDuration(form.duration) : null,
+            status: "Pending", // Default
+            duration: null,    // Default
+            description: form.description // Added
         };
 
         try {
             await api.post("/cutjob", payload);
-            toast.success("Cut job created!", { autoClose: 1000 });
-            setForm({ jobName: "", materialId: "", status: "Pending", duration: "" });
+            toast.success(t('toasts.cutJobCreated'), { autoClose: 1000 });
+            setForm({ jobName: "", materialId: "", description: "" });
             setTimeout(() => {
                 navigate("/dashboard/user/cut-log");
             }, 1000);
@@ -94,7 +72,7 @@ export default function NewCut() {
             toast.error(
                 err?.response?.data?.error ||
                 err?.response?.data?.message ||
-                "Failed to create cut job"
+                t('toasts.createCutJobFailed') || "Failed to create cut job"
             );
         }
     }
@@ -146,33 +124,18 @@ export default function NewCut() {
                 <label htmlFor="materialId">{t('newCut.material')}</label>
             </div>
 
-            <div className="input-group">
-                <select
-                    name="status"
-                    value={form.status}
-                    onChange={handleChange}
-                    className={form.status ? "has-value" : ""}
-                >
-                    <option value="" disabled hidden></option>
-                    <option value="Pending">{t('newCut.pending')}</option>
-                    <option value="In Progress">{t('newCut.inProgress')}</option>
-                    <option value="Completed">{t('newCut.completed')}</option>
-                </select>
-                <label htmlFor="status">{t('newCut.status')}</label>
-            </div>
-
             <div className="user-input-group">
-                <input
-                    type="text"
-                    name="duration"
-                    value={form.duration}
+                <textarea
+                    name="description"
+                    value={form.description}
                     onChange={handleChange}
-                    placeholder="HH:mm:ss"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    disabled={form.status !== "Completed"}
+                    placeholder=" "
+                    required
+                    autoComplete="off"
+                    rows="3"
+                    style={{ paddingTop: '10px' }}
                 />
-                <label htmlFor="duration">{t('newCut.duration')}</label>
+                <label htmlFor="description">{t('materials.description')}</label>
             </div>
 
             <button type="submit" className="create-button">

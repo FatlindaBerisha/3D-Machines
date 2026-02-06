@@ -11,6 +11,7 @@ const ChatAssistant = () => {
     const { user } = useContext(UserContext); // Get user from context
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     // Get user name from context
     const getUserName = () => {
@@ -79,7 +80,7 @@ const ChatAssistant = () => {
 
         try {
             const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
-            const response = await fetch('https://localhost:7178/api/chat', { // Updated port to 7178
+            const response = await fetch('http://localhost:5151/api/chat', { // Updated port to 5151
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -107,6 +108,10 @@ const ChatAssistant = () => {
 
             const aiMessage = { id: Date.now() + 1, text: aiText, sender: 'ai' };
             setMessages(prev => [...prev, aiMessage]);
+            // Increment unread count if chat is closed
+            if (!isOpen) {
+                setUnreadCount(prev => prev + 1);
+            }
         } catch (error) {
             console.error('Error sending message:', error);
             // Display the actual error message
@@ -219,8 +224,11 @@ const ChatAssistant = () => {
                 </div>
             )}
             {!isOpen && (
-                <button className="chat-fab" onClick={() => setIsOpen(true)}>
+                <button className="chat-fab" onClick={() => { setIsOpen(true); setUnreadCount(0); }}>
                     <i className="bi bi-chat-dots-fill"></i>
+                    {unreadCount > 0 && (
+                        <span className="chat-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                    )}
                 </button>
             )}
         </div>

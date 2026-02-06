@@ -5,7 +5,7 @@ export async function logout({ revoke = true } = {}) {
     const refreshToken = localStorage.getItem('refreshToken');
     if (revoke && refreshToken) {
       try {
-        await fetch('https://localhost:7178/api/auth/revoke-token', {
+        await fetch('http://localhost:5151/api/auth/revoke-token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken }),

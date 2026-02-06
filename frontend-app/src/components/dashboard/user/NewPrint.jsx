@@ -10,8 +10,7 @@ export default function NewPrint() {
   const [form, setForm] = useState({
     jobName: "",
     filamentId: "",
-    status: "",
-    duration: "",
+    description: "",
   });
 
   const [filaments, setFilaments] = useState([]);
@@ -26,7 +25,7 @@ export default function NewPrint() {
         const res = await api.get("/filamentsuser");
         setFilaments(res.data);
       } catch (err) {
-        toast.error("Failed to fetch filaments");
+        toast.error(t('toasts.filamentsFailed'));
       }
     }
 
@@ -46,29 +45,7 @@ export default function NewPrint() {
       }));
     }
 
-    if (name === "duration") {
-      if (value === "" || /^[0-9\b]+$/.test(value)) {
-        return setForm((prev) => ({ ...prev, [name]: value }));
-      }
-      return;
-    }
-
     setForm((prev) => ({ ...prev, [name]: value }));
-  }
-
-  // -------------------------
-  // Format Duration
-  // -------------------------
-  function formatDuration(minutesStr) {
-    if (!minutesStr) return null;
-
-    const minutes = parseInt(minutesStr, 10);
-    if (isNaN(minutes) || minutes < 0) return null;
-
-    const hours = Math.floor(minutes / 60).toString().padStart(2, "0");
-    const mins = (minutes % 60).toString().padStart(2, "0");
-
-    return `${hours}:${mins}:00`;
   }
 
   // -------------------------
@@ -77,30 +54,24 @@ export default function NewPrint() {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!form.jobName.trim()) return toast.error("Job name is required");
-    if (!form.filamentId) return toast.error("Please select a filament");
-
-    if (form.duration && (isNaN(form.duration) || parseInt(form.duration, 10) < 0)) {
-      return toast.error("Duration must be a positive number");
-    }
-
-    if (form.status === "Completed" && !form.duration) {
-      return toast.error("Duration is required when status is Completed");
-    }
+    if (!form.jobName.trim()) return toast.error(t('toasts.jobNameRequired'));
+    if (!form.filamentId) return toast.error(t('toasts.selectFilament'));
+    if (!form.description.trim()) return toast.error(t('toasts.descriptionRequired') || "Description is required");
 
     const payload = {
       jobName: form.jobName,
       filamentId: Number(form.filamentId),
-      status: form.status || "Pending",
-      duration: form.duration ? formatDuration(form.duration) : null,
+      description: form.description,
+      // status is handled by backend (default Pending)
+      // duration is calculated by start/finish actions
     };
 
     try {
       await api.post("/printjob", payload);
 
-      toast.success("Print job created!", { autoClose: 1000 });
+      toast.success(t('toasts.printJobCreated'), { autoClose: 1000 });
 
-      setForm({ jobName: "", filamentId: "", status: "Pending", duration: "" });
+      setForm({ jobName: "", filamentId: "", description: "" });
 
       setTimeout(() => {
         navigate("/dashboard/user/print-log");
@@ -109,7 +80,7 @@ export default function NewPrint() {
       toast.error(
         err?.response?.data?.error ||
         err?.response?.data?.message ||
-        "Failed to create print job"
+        t('toasts.printJobCreateFailed')
       );
     }
   }
@@ -155,35 +126,19 @@ export default function NewPrint() {
         <label htmlFor="filamentId">{t('newPrint.filament')}</label>
       </div>
 
-      {/* Status */}
-      <div className="input-group">
-        <select
-          name="status"
-          value={form.status}
-          onChange={handleChange}
-          className={form.status ? "has-value" : ""}
-        >
-          <option value="" disabled hidden></option>
-          <option value="Pending">{t('newPrint.pending')}</option>
-          <option value="In Progress">{t('newPrint.inProgress')}</option>
-          <option value="Completed">{t('newPrint.completed')}</option>
-        </select>
-        <label htmlFor="status">{t('newPrint.status')}</label>
-      </div>
-
-      {/* Duration */}
+      {/* Description */}
       <div className="user-input-group">
-        <input
-          type="text"
-          name="duration"
-          value={form.duration}
+        <textarea
+          name="description"
+          value={form.description}
           onChange={handleChange}
-          placeholder="HH:mm:ss"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          disabled={form.status !== "Completed"}
+          placeholder=" "
+          required
+          autoComplete="off"
+          aria-label="Description"
+          rows="3"
         />
-        <label htmlFor="duration">{t('newPrint.duration')}</label>
+        <label htmlFor="description">{t('newPrint.description')}</label>
       </div>
 
       <button type="submit" className="create-button">

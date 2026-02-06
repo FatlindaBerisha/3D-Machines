@@ -65,7 +65,7 @@ export default function AdminProfile() {
     }
 
     fetchProfile();
-  }, [setUser, professionOptions, genderOptions]);
+  }, [setUser]);
 
 
   // =========================

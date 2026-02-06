@@ -22,8 +22,8 @@ function ProjectModal({ initialData, isEditing, onSubmit, onCancel }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!form.moduleName.trim()) return toast.error("Module name is required");
-        if (!isEditing && !form.file) return toast.error("Please select a file");
+        if (!form.moduleName.trim()) return toast.error(t('toasts.moduleNameRequired'));
+        if (!isEditing && !form.file) return toast.error(t('toasts.selectFile'));
         onSubmit(form);
     };
 
@@ -150,11 +150,11 @@ export default function AdminCutProjects() {
                         onClick={async () => {
                             try {
                                 await api.delete(`/cutprojects/${id}`);
-                                toast.success("Project deleted!");
+                                toast.success(t('toasts.projectDeleted'));
                                 fetchProjects();
                             } catch (err) {
                                 toast.error(
-                                    err?.response?.data?.message || "Failed to delete project"
+                                    err?.response?.data?.message || t('toasts.deleteProjectFailed')
                                 );
                             } finally {
                                 toast.dismiss(toastIdRef.current);

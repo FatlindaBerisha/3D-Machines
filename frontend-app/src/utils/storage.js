@@ -1,10 +1,4 @@
 // Minimal storage helper for auth tokens
-
-export function getUser() {
-  const u = localStorage.getItem('user') || sessionStorage.getItem('user');
-  if (!u) return null;
-  try { return JSON.parse(u); } catch { return null; }
-}
 export function getToken() {
   return localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken') || null;
 }
@@ -31,17 +25,26 @@ export function setAuth({ token, refreshToken, user } = {}, remember = true) {
   if (user === undefined || user === null) {
     store.removeItem('user');
   } else {
-    try { store.setItem('user', JSON.stringify(user)); } catch (e) { }
+    try { store.setItem('user', JSON.stringify(user)); } catch (e) { /* ignore */ }
   }
 }
 
-export function removeAuth() {
-  ['jwtToken', 'refreshToken', 'user'].forEach(key => {
-    localStorage.removeItem(key);
-    sessionStorage.removeItem(key);
-  });
+export function clearAuth() {
+  try { localStorage.removeItem('jwtToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('user'); } catch { }
+  try { sessionStorage.removeItem('jwtToken'); sessionStorage.removeItem('refreshToken'); sessionStorage.removeItem('user'); } catch { }
 }
 
-export const clearAuth = removeAuth;
+export function removeAuth() {
+  clearAuth();
+}
 
-export default { getToken, getRefreshToken, getUser, setAuth, clearAuth, removeAuth };
+export function getUser() {
+  try {
+    const user = localStorage.getItem('user') || sessionStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export default { getToken, getRefreshToken, setAuth, clearAuth, removeAuth, getUser };

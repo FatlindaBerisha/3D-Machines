@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
-import { MdEdit, MdDelete } from "react-icons/md";
+import { FaEdit, FaTrash, FaClipboardList, FaCalendarAlt, FaPrint, FaFlask, FaCheckCircle, FaPauseCircle } from "react-icons/fa";
 import EditPrintJobForm from "./EditPrintJobForm";
-import Pagination from "../Pagination";
+import PrintJobDetailsModal from "./PrintJobDetailsModal";
+
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import api from "../../../utils/axiosClient";
@@ -19,13 +21,26 @@ export default function PrintLog() {
     filamentId: "",
     status: "Pending",
     duration: "",
+    description: "",
   });
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [filaments, setFilaments] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "");
   const toastIdRef = useRef(null);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const jobsPerPage = 5;
+  const [selectedJobId, setSelectedJobId] = useState(null);
+
+  function openDetails(jobId) {
+    setSelectedJobId(jobId);
+  }
+
+  function closeDetails() {
+    setSelectedJobId(null);
+  }
+
+
 
   // -------------------------------------------------------
   // Merge filaments into printJob list
@@ -41,32 +56,27 @@ export default function PrintLog() {
   }
 
   // -------------------------------------------------------
-  // FETCH DATA (axios auto-refresh)
+  // FETCH DATA (axios)
   // -------------------------------------------------------
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [resJobs, resFilaments] = await Promise.all([
-          api.get("/printjob/my"),
-          api.get("/filamentsuser"),
-        ]);
+  async function fetchData() {
+    try {
+      const [resJobs, resFilaments] = await Promise.all([
+        api.get("/printjob/my"),
+        api.get("/filamentsuser"),
+      ]);
 
-        setFilaments(resFilaments.data);
-        setPrintJobs(mergeJobsWithFilamentNames(resJobs.data, resFilaments.data));
-      } catch (err) {
-        toast.error(err?.response?.data?.message || t('toasts.printJobUpdateFailed'));
-      }
+      setFilaments(resFilaments.data);
+      setPrintJobs(mergeJobsWithFilamentNames(resJobs.data, resFilaments.data));
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t('toasts.printJobUpdateFailed'));
     }
+  }
 
+  useEffect(() => {
     fetchData();
   }, []);
 
-  // -------------------------------------------------------
-  // Pagination
-  // -------------------------------------------------------
-  const totalPages = Math.ceil(printJobs.length / jobsPerPage);
-  const indexOfLastJob = currentPage * jobsPerPage;
-  const currentJobs = printJobs.slice(indexOfLastJob - jobsPerPage, indexOfLastJob);
+
 
   // -------------------------------------------------------
   // EDIT MODAL OPEN
@@ -87,6 +97,7 @@ export default function PrintLog() {
       filamentId: String(job.filamentId),
       status: job.status,
       duration: durationMinutes,
+      description: job.description || "",
     });
 
     setIsEditing(true);
@@ -100,6 +111,7 @@ export default function PrintLog() {
       filamentId: "",
       status: "Pending",
       duration: "",
+      description: "",
     });
   }
 
@@ -143,6 +155,7 @@ export default function PrintLog() {
           : editForm.duration
             ? formatDuration(editForm.duration)
             : null,
+      description: editForm.description,
     };
 
     try {
@@ -214,15 +227,77 @@ export default function PrintLog() {
   }
 
   // -------------------------------------------------------
+  // DRAG AND DROP HANDLERS
+  // -------------------------------------------------------
+  function handleDragStart(e, jobId) {
+    e.dataTransfer.setData("jobId", jobId);
+  }
+
+  async function handleDrop(e, newStatus) {
+    e.preventDefault();
+    const jobId = parseInt(e.dataTransfer.getData("jobId"), 10);
+    const job = printJobs.find((j) => j.id === jobId);
+
+    if (!job || job.status === newStatus) return;
+
+    // Optimistic Update
+    const originalStatus = job.status;
+    setPrintJobs((prev) =>
+      prev.map((j) => (j.id === jobId ? { ...j, status: newStatus } : j))
+    );
+
+    try {
+      // Need to send all required fields for PUT, not just status
+      // Or if backend supports PATCH... but we have PUT UpdatePrintJob
+      // The current UpdatePrintJob requires: Id, JobName, FilamentId, Status, Duration
+
+      // Calculate duration format if needed? 
+      // The backend expects generic TimeSpan?, usually in HH:mm:ss string or similar if JSON
+      // But we have `job.duration` as string "HH:mm:ss" or null.
+
+      const payload = {
+        id: job.id,
+        jobName: job.jobName,
+        filamentId: job.filamentId,
+        status: newStatus,
+        duration: job.duration, // Keep existing duration
+        description: job.description, // Keep existing description
+      };
+
+      await api.put(`/printjob/${job.id}`, payload);
+      toast.success(t('toasts.statusUpdated'));
+    } catch (err) {
+      // Revert on failure
+      setPrintJobs((prev) =>
+        prev.map((j) => (j.id === jobId ? { ...j, status: originalStatus } : j))
+      );
+      toast.error(t('toasts.statusUpdateFailed'));
+    }
+  }
+
+  // -------------------------------------------------------
   // FORMATTERS
   // -------------------------------------------------------
   function getStatusTranslation(status) {
-    const statusMap = {
-      "Pending": t('common.pending'),
-      "In Progress": t('common.inProgress'),
-      "Completed": t('common.completed')
-    };
-    return statusMap[status] || status;
+    // Hardcoded fallback if keys missing
+    if (status === "Pending") return t('kanban.todo') || "ToDo";
+    if (status === "In Progress") return t('kanban.inProgress') || "In Progress";
+    if (status === "Testing") return t('kanban.testing') || "Testing";
+    if (status === "Completed") return t('kanban.done') || "Done";
+    if (status === "Paused") return t('kanban.onHold') || "On Hold";
+    if (status === "Meetings") return t('kanban.meetings') || "Meetings";
+    return status;
+  }
+
+  function getStatusIcon(status) {
+    const style = { color: 'white', marginRight: '8px', fontSize: '18px' };
+    if (status === "Pending") return <FaClipboardList style={style} />;
+    if (status === "Meetings") return <FaCalendarAlt style={style} />;
+    if (status === "In Progress") return <FaPrint style={style} />;
+    if (status === "Testing") return <FaFlask style={style} />;
+    if (status === "Completed") return <FaCheckCircle style={style} />;
+    if (status === "Paused") return <FaPauseCircle style={style} />;
+    return null;
   }
 
   function formatDate(dateStr) {
@@ -259,7 +334,7 @@ export default function PrintLog() {
         job.jobName,
         job.filamentName || "-",
         job.status,
-        job.duration || "-",
+        job.durationFormatted || "-",
         formatDate(job.createdAt),
       ]);
     });
@@ -287,6 +362,14 @@ export default function PrintLog() {
     <div className="printlog-container">
       <h2 className="printlog-title">{t('printLogs.myTitle')}</h2>
 
+      {selectedJobId && (
+        <PrintJobDetailsModal
+          jobId={selectedJobId}
+          onClose={closeDetails}
+          onUpdate={fetchData}
+        />
+      )}
+
       {isEditing && (
         <div className="modal-overlay" onClick={closeEditModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -302,58 +385,103 @@ export default function PrintLog() {
         </div>
       )}
 
-      {printJobs.length === 0 ? (
-        <p className="no-printjobs-message">{t('printLogs.noPrintJobs')}</p>
-      ) : (
-        <>
-          <div style={{ marginBottom: "8px", textAlign: "right" }}>
-            <button className="export-excel-btn" onClick={exportToExcel}>
-              <i className="bi bi-file-earmark-excel-fill"></i> {t('printLogs.export')}
+      <div style={{ marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <select
+            className="status-filter-select"
+            value={selectedStatus}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedStatus(val);
+              if (val) searchParams.set("status", val);
+              else searchParams.delete("status");
+              setSearchParams(searchParams);
+            }}
+            style={{ padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '150px', fontSize: '14px', cursor: 'pointer' }}
+          >
+            <option value="">{t('common.all')}</option>
+            {["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"].map(s => (
+              <option key={s} value={s}>{getStatusTranslation(s)}</option>
+            ))}
+          </select>
+          {selectedStatus && (
+            <button
+              onClick={() => {
+                setSelectedStatus("");
+                searchParams.delete("status");
+                setSearchParams(searchParams);
+              }}
+              className="icon-btn"
+              title={t('common.all')}
+              style={{ padding: '8px', color: '#666', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <i className="bi bi-x-lg" style={{ fontSize: '14px' }}></i>
             </button>
-          </div>
+          )}
+        </div>
+        <button className="export-excel-btn" onClick={exportToExcel} style={{ marginBottom: 0 }}>
+          <i className="bi bi-file-earmark-excel-fill"></i> {t('printLogs.export')}
+        </button>
+      </div>
 
-          <table className="printlog-table">
-            <thead>
-              <tr>
-                <th>{t('printLogs.jobName')}</th>
-                <th>{t('printLogs.filament')}</th>
-                <th>{t('printLogs.status')}</th>
-                <th>{t('printLogs.duration')}</th>
-                <th>{t('printLogs.createdAt')}</th>
-                <th className="actions-cell">{t('common.edit')}</th>
-                <th className="actions-cell">{t('common.delete')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentJobs.map((job) => (
-                <tr key={job.id}>
-                  <td>{job.jobName}</td>
-                  <td>{job.filamentName || "-"}</td>
-                  <td>
-                    <span className={`printlog-status printlog-status-${job.status.toLowerCase().replace(" ", "-")}`}>
-                      {getStatusTranslation(job.status)}
-                    </span>
-                  </td>
-                  <td>{job.duration || "-"}</td>
-                  <td>{formatDate(job.createdAt)}</td>
-                  <td className="actions-cell">
-                    <button onClick={() => openEditModal(job)} className="printlog-icon-btn edit">
-                      <MdEdit />
-                    </button>
-                  </td>
-                  <td className="actions-cell">
-                    <button onClick={() => showDeleteConfirm(job.id)} className="printlog-icon-btn delete">
-                      <MdDelete />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="kanban-board">
+        {["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"].map((columnStatus) => {
+          const columnJobs = printJobs.filter((job) => {
+            if (selectedStatus && job.status !== selectedStatus) return false;
 
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-        </>
-      )}
+            if (columnStatus === "Pending") return job.status === "Pending" || job.status === "Waiting";
+            if (columnStatus === "In Progress") return job.status === "In Progress" || job.status === "Preparing" || job.status === "Printing" || job.status === "Post-Processing";
+            if (columnStatus === "Completed") return job.status === "Completed" || job.status === "Done";
+            if (columnStatus === "Paused") return job.status === "Paused" || job.status === "Failed";
+            return job.status === columnStatus;
+          });
+          return (
+            <div
+              key={columnStatus}
+              className={`kanban-column column-${columnStatus.toLowerCase().replace(" ", "-")}`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => handleDrop(e, columnStatus)}
+            >
+              <h3>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {getStatusIcon(columnStatus)}
+                  {getStatusTranslation(columnStatus)}
+                </div>
+                <span>({columnJobs.length})</span>
+              </h3>
+              <div className="kanban-column-content">
+                {columnJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="kanban-card"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, job.id)}
+                    onClick={() => openDetails(job.id)}
+                  >
+                    <div className="card-header">
+                      <span className="job-name">{job.jobName}</span>
+                    </div>
+                    <div className="card-body">
+                      {job.filamentName && (
+                        <div className="card-tag">
+                          {job.filamentName}
+                        </div>
+                      )}
+
+                      <div className="card-footer">
+                        <span className="card-date">{formatDate(job.createdAt)}</span>
+                        <div className="user-avatar-mini" title={job.user?.fullName}>
+                          {job.user?.fullName ? job.user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : '?'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

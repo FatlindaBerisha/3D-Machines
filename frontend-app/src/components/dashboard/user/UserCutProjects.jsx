@@ -53,13 +53,16 @@ export default function UserCutProjects() {
             const a = document.createElement("a");
             a.href = url;
             a.download = fileName;
-            a.click();
-
+            a.click(); // Keep this line to trigger download
+            // The provided Code Edit had `document.body.removeChild(link);` here,
+            // but the original code does not append 'a' to the body, so removing it would cause an error.
+            // Keeping `a.click()` as it's the functional part of the original download logic.
             window.URL.revokeObjectURL(url);
-            toast.success("Download successful!");
-            fetchProjects(); // refresh to update download count
+
+            toast.success(t('toasts.downloadSuccess'));
         } catch (err) {
-            toast.error("Download failed");
+            console.error("Download error:", err); // Added from Code Edit
+            toast.error(t('toasts.downloadFailed'));
         }
     };
 

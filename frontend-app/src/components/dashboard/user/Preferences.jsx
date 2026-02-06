@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../../ThemeContext";
+import api from "../../../utils/axiosClient";
 import "../../styles/Preferences.css";
 
 export default function Preferences() {
@@ -15,9 +16,21 @@ export default function Preferences() {
   });
 
   useEffect(() => {
-    // Sync with current i18n language
-    setPreferences(prev => ({ ...prev, language: i18n.language }));
-  }, [i18n.language]);
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/user/profile");
+        if (res.data.preferredLanguage) {
+          setPreferences(prev => ({ ...prev, language: res.data.preferredLanguage }));
+          if (res.data.preferredLanguage !== i18n.language) {
+            i18n.changeLanguage(res.data.preferredLanguage);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch profile for preferences:", err);
+      }
+    };
+    fetchProfile();
+  }, []); // Run once on mount
 
   const toggle = (key) => {
     if (key === 'darkMode') {
@@ -27,10 +40,25 @@ export default function Preferences() {
     }
   };
 
-  const handleLanguageChange = (e) => {
+  const handleLanguageChange = async (e) => {
     const newLang = e.target.value;
     setPreferences((prev) => ({ ...prev, language: newLang }));
     i18n.changeLanguage(newLang);
+
+    try {
+      // We need to send full name etc because profile PUT requires it
+      // Alternatively, we could add a dedicated preference endpoint.
+      // For now, let's fetch profile first or just send the lang update if we have a special endpoint.
+      // I'll update the backend to allow just sending Preference if I want, but I already updated UpdateProfile.
+      // So I'll fetch current profile first to not overwrite with blanks.
+      const profile = await api.get("/user/profile");
+      await api.put("/user/profile", {
+        ...profile.data,
+        preferredLanguage: newLang
+      });
+    } catch (err) {
+      console.error("Failed to update language preference on backend:", err);
+    }
   };
 
   return (

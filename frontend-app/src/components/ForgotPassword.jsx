@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import api from "../utils/axiosClient";
 
 export default function ForgotPassword() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,17 +21,27 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      await api.post("/auth/forgot-password", { email });
+      await api.post("/auth/forgot-password", { email, language: i18n.language });
 
       toast.success(t('toasts.resetLinkSent'));
       setEmail("");
 
     } catch (err) {
-      toast.error(
-        err?.response?.data ||
-        err?.response?.data?.message ||
-        t('toasts.resetPasswordFailed')
-      );
+      let backendMsg = err?.response?.data;
+      if (typeof backendMsg !== "string") {
+        backendMsg = backendMsg?.message || backendMsg?.error || JSON.stringify(backendMsg);
+      }
+
+      let finalMsg = typeof backendMsg === 'string' ? backendMsg : "";
+      const lowerMsg = finalMsg.toLowerCase();
+
+      if (lowerMsg.includes("email not registered") || lowerMsg.includes("user not found")) {
+        finalMsg = t('toasts.emailNotRegistered');
+      } else if (!finalMsg) {
+        finalMsg = t('toasts.resetPasswordFailed');
+      }
+
+      toast.error(finalMsg);
     } finally {
       setLoading(false);
     }
@@ -39,7 +49,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="forgot-wrapper">
-      <form className="forgot-form" onSubmit={handleSubmit}>
+      <form className="forgot-form" onSubmit={handleSubmit} noValidate>
         <h2 className="forgot-title">{t('forgotPassword.title')}</h2>
         <p className="forgot-description">
           {t('forgotPassword.description')}

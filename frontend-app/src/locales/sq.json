@@ -52,7 +52,18 @@
         "save": "Ruaj Ndryshimet",
         "cancel": "Anulo",
         "updating": "Duke përditësuar...",
-        "profileUpdated": "Profili u përditësua me sukses!"
+        "profileUpdated": "Profili u përditësua me sukses!",
+        "changeEmail": "Ndrysho",
+        "emailChangeRequested": "Email-i i verifikimit u dërgua te adresa e re. Ju lutemi kontrolloni inbox-in tuaj.",
+        "pendingEmailCheck": "Verifikimi në pritje për:",
+        "changeEmailModal": {
+            "title": "Ndrysho Adresën e Email-it",
+            "description": "Vendosni adresën tuaj të re të email-it dhe fjalëkalimin aktual. Ne do t'ju dërgojmë një lidhje verifikimi në email-in e ri.",
+            "newEmail": "Adresa e Re e Email-it",
+            "currentPassword": "Fjalëkalimi Aktual",
+            "submit": "Dërgo Verifikimin",
+            "cancel": "Anulo"
+        }
     },
     "genderOptions": {
         "female": "Femër",
@@ -86,9 +97,39 @@
         "materialManager": "Menaxhuesi i Materialeve",
         "cutFiles": "Skedarët e Prerjes"
     },
+    "task": {
+        "owner": "Krijuesi i detyrës",
+        "assignee": "Përgjegjësi",
+        "created": "Krijuar",
+        "stage": "Faza",
+        "participants": "Pjesëmarrësit",
+        "add": "Shto",
+        "selectUser": "Zgjidh përdoruesin...",
+        "start": "Fillo",
+        "pause": "Pauzo",
+        "resume": "Rifillo",
+        "finish": "Përfundo",
+        "complete": "Përfundo",
+        "completedAt": "Përfunduar në",
+        "chat": "Biseda e detyrës",
+        "members": "anëtarë"
+    },
     "dashboard": {
         "welcomeUser": "Mirë se vini Përdorues në Panel",
-        "welcomeAdmin": "Mirë se vini Administrator në Panel"
+        "welcomeAdmin": "Mirë se vini Administrator në Panel",
+        "statistics": "Statistikat",
+        "totalPrints": "Gjithsej Printe",
+        "totalCuts": "Gjithsej Prerje",
+        "activePrints": "Printe Aktive",
+        "activeCuts": "Prerje Aktive",
+        "completedJobs": "Detyra të Përfunduara",
+        "failedJobs": "Detyra të Dështuara",
+        "totalUsers": "Gjithsej Përdorues",
+        "printStatusDist": "Shpërndarja e Statusit të Printeve",
+        "cutStatusDist": "Shpërndarja e Statusit të Prerjeve",
+        "noData": "Nuk ka të dhëna",
+        "activeTasks": "Detyra Aktive",
+        "myStats": "Statistikat e Mia"
     },
     "preferences": {
         "title": "Preferencat",
@@ -220,6 +261,7 @@
         "error": "Gabim",
         "success": "Sukses",
         "warning": "Paralajmërim",
+        "all": "Të gjithë",
         "info": "Informacion",
         "male": "Mashkull",
         "female": "Femër",
@@ -230,12 +272,116 @@
         "unknown": "I panjohur",
         "pending": "Në Pritje",
         "inProgress": "Në Proces",
-        "completed": "Përfunduar"
+        "completed": "Përfunduar",
+        "edited": "Redaktuar",
+        "paused": "E ndaluar",
+        "waiting": "Duke Pritur",
+        "preparing": "Duke Përgatitur",
+        "printing": "Duke Printuar",
+        "postProcessing": "Përpunim Përfundimtar",
+        "failed": "Dështuar"
+    },
+    "printWorkflow": {
+        "statuses": {
+            "waiting": "Duke Pritur",
+            "preparing": "Duke Përgatitur",
+            "printing": "Duke Printuar",
+            "postProcessing": "Përpunim Përfundimtar",
+            "completed": "Përfunduar",
+            "failed": "Dështuar"
+        },
+        "quickActions": {
+            "startPrint": "Fillo Printimin",
+            "pause": "Pauzo",
+            "resume": "Rifillo",
+            "markCompleted": "Përfunduar",
+            "markFailed": "Dështuar"
+        },
+        "messageTags": {
+            "fileUploaded": "Skedari u Ngarkua",
+            "slicerSettings": "Cilësimet e Slicer",
+            "printerIssue": "Problem me Printerin",
+            "materialChange": "Ndryshim Materiali",
+            "calibrationNote": "Shënim Kalibrimi",
+            "general": "E Përgjithshme"
+        },
+        "printSettings": {
+            "title": "Cilësimet e Printimit",
+            "printer": "Printeri",
+            "material": "Materiali",
+            "layerHeight": "Lartësia e Shtresës",
+            "nozzle": "Nozla",
+            "infill": "Mbushja",
+            "timeEstimate": "Koha e Parashikuar"
+        },
+        "pinMessage": "Fiksoje në Përshkrim",
+        "systemMessage": "Sistemi",
+        "printPhases": {
+            "preparing": "Duke Përgatitur",
+            "fileReady": "Skedari Gati",
+            "slicing": "Duke Prerë (Slicing)",
+            "printerSetup": "Konfigurimi i Printerit",
+            "printing": "Duke Printuar",
+            "cooling": "Duke u Ftohur",
+            "postProcessing": "Përpunim Përfundimtar",
+            "testPrint": "Printim Testues",
+            "reprintNeeded": "Nevojitet Ribotim",
+            "done": "E Kryer"
+        }
+    },
+    "cutWorkflow": {
+        "cutSettings": {
+            "title": "Cilësimet e Prerjes",
+            "machine": "Makineria",
+            "speed": "Shpejtësia / Feed Rate",
+            "power": "Fuqia e Lazerit/Mjetit",
+            "timeEstimate": "Koha e Parashikuar",
+            "thickness": "Trashësia",
+            "operationType": "Lloji i Operacionit",
+            "passes": "Kalimet"
+        },
+        "cutPhases": {
+            "title": "Faza e Prerjes",
+            "waiting": "Në Pritje",
+            "preparing": "Duke Përgatitur",
+            "fileReady": "Skedari gati",
+            "toolpathReady": "Gjurmë Gati",
+            "machineSetup": "Konfigurimi Makinerisë",
+            "cutting": "Prerja",
+            "finishing": "Duke Përfunduar",
+            "cooling": "Ftohja",
+            "postProcessing": "Përpunimi pas prerjes",
+            "completed": "E Përfunduar",
+            "recutNeeded": "Duhet Riprerje",
+            "done": "E kryer"
+        },
+        "tags": {
+            "fileUploaded": "Skedari u Ngarkua",
+            "toolpathUpdated": "Gjurma u Përditësua",
+            "machineIssue": "Problem me Makinerinë",
+            "materialIssue": "Problem me Materialin",
+            "dimensionCheck": "Kontrolli i Përmasave"
+        },
+        "quickActions": {
+            "approveFile": "Aprovo Skedarin",
+            "generateToolpath": "Gjenero Gjurmën",
+            "startCutting": "Fillo Prerjen",
+            "pause": "Pauzo",
+            "completed": "E Përfunduar",
+            "recut": "Kërko Riprerje"
+        }
+    },
+    "kanban": {
+        "todo": "Për t'u bërë",
+        "inProgress": "Në Proces",
+        "testing": "Duke u Testuar",
+        "done": "Përfunduar",
+        "onHold": "Në Pritje (Pauzë)",
+        "meetings": "Mbledhje"
     },
     "toasts": {
         "loginSuccess": "Hyrja u krye me sukses!",
         "logoutMessage": "Jeni larguar. Ju lutemi hyni përsëri.",
-        "fillAllFields": "Ju lutemi plotësoni të dy fushat.",
         "invalidEmail": "Format i pavlefshëm i email-it.",
         "invalidResponse": "Përgjigje e pavlefshme nga serveri.",
         "emailNotVerified": "Email-i juaj nuk është verifikuar. Ju lutemi kontrolloni inbox-in tuaj.",
@@ -246,8 +392,12 @@
         "loadDataFailed": "Dështoi ngarkimi i të dhënave",
         "printJobUpdated": "Puna e printimit u përditësua!",
         "printJobDeleted": "Puna e printimit u fshi!",
+        "printJobCreateFailed": "Dështoi krijimi i detyrës së printimit.",
+        "descriptionRequired": "Përshkrimi është i detyrueshëm.",
         "printJobUpdateFailed": "Dështoi përditësimi i punës së printimit",
         "printJobDeleteFailed": "Dështoi fshirja e punës së printimit",
+        "statusUpdated": "Statusi u përditësua me sukses!",
+        "statusUpdateFailed": "Dështoi përditësimi i statusit",
         "jobNameRequired": "Emri i punës është i detyrueshëm",
         "selectFilament": "Ju lutemi zgjidhni një filament",
         "durationPositive": "Kohëzgjatja duhet të jetë një numër pozitiv",
@@ -268,11 +418,69 @@
         "invalidToken": "Token i pavlefshëm ose mungon.",
         "durationRequired": "Ju lutemi jepni një kohëzgjatje para se ta shenjoni si të Përfunduar.",
         "incorrectPassword": "Fjalëkalimi është i pasaktë.",
-        "deleteAccountFailed": "Dështoi fshirja e llogarisë."
+        "deleteAccountFailed": "Dështoi fshirja e llogarisë.",
+        "welcomeBack": "Mirë se erdhe, {{name}}!",
+        "accountLocked": "Hyrja dështoi. Shumë përpjekje. Provoni përsëri në {{minutes}} minuta.",
+        "userNotFound": "Përdoruesi nuk u gjet.",
+        "fullNameLength": "Emri i plotë duhet të ketë të paktën 3 shkronja.",
+        "invalidPhone": "Ju lutemi shkruani një numër telefoni të vlefshëm.",
+        "passwordCriteria": "Fjalëkalimi duhet të përmbajë shkronja të mëdha, të vogla, numra dhe simbole.",
+        "fillRequiredFields": "Ju lutemi plotësoni të gjitha fushat e kërkuara.",
+        "registrationSuccess": "Regjistrimi ishte i suksesshëm! Ju lutemi kontrolloni email-in tuaj për të verifikuar llogarinë.",
+        "registrationFailed": "Regjistrimi dështoi.",
+        "emailAlreadyInUse": "Ky email është tashmë në përdorim.",
+        "emailVerifiedSuccess": "Email-i u verifikua me sukses.",
+        "verificationProcessing": "Duke përpunuar verifikimin tuaj, ju lutemi prisni...",
+        "verificationMissingToken": "Lidhjes së verifikimit i mungon tokeni.",
+        "verificationFailed": "Lidhje verifikimi e pavlefshme ose e skaduar.",
+        "fillAllFields": "Ju lutemi plotësoni të gjitha fushat.",
+        "resendSuccess": "Një email i ri verifikimi është dërguar.",
+        "resendFailed": "Nuk mund të dërgohej email-i i verifikimit.",
+        "enterEmailResend": "Ju lutemi vendosni email-in tuaj.",
+        "emailAlreadyVerified": "Email-i tashmë është verifikuar.",
+        "emailNotRegistered": "Email-i nuk është i regjistruar.",
+        "downloadSuccess": "Shkarkimi u krye me sukses!",
+        "downloadFailed": "Shkarkimi dështoi",
+        "failedFetchProjects": "Dështoi ngarkimi i projekteve",
+        "printJobCreated": "Puna e printimit u krijua!",
+        "failedFetchMaterials": "Dështoi ngarkimi i materialeve",
+        "selectMaterial": "Ju lutemi zgjidhni një material",
+        "cutJobCreated": "Puna e prerjes u krijua!",
+        "cutJobUpdated": "Puna e prerjes u përditësua!",
+        "updateCutJobFailed": "Dështoi përditësimi i punës së prerjes",
+        "cutJobDeleted": "Puna e prerjes u fshi!",
+        "deleteCutJobFailed": "Dështoi fshirja e punës së prerjes",
+        "moduleNameRequired": "Emri i modulit kërkohet",
+        "selectFile": "Ju lutemi zgjidhni një skedar",
+        "projectDeleted": "Projekti u fshi!",
+        "projectCreated": "Projekti u krijua!",
+        "projectUpdated": "Projekti u përditësua!",
+        "saveProjectFailed": "Dështoi ruajtja e projektit",
+        "deleteProjectFailed": "Dështoi fshirja e projektit",
+        "passwordUpdated": "Fjalëkalimi u përditësua!",
+        "accountDeleted": "Llogaria u fshi.",
+        "genericUpdateFailed": "Përditësimi dështoi",
+        "loadProfileFailed": "Dështoi ngarkimi i profilit"
+    },
+    "verifyEmail": {
+        "title": "Verifikoni Email-in Tuaj",
+        "processing": "Duke përpunuar verifikimin tuaj, ju lutemi prisni...",
+        "redirecting": "Duke ju ridrejtuar në faqen e hyrjes...",
+        "enterEmail": "Vendosni email-in tuaj më poshtë për të marrë një lidhje të re verifikimi.",
+        "emailAddress": "Adresa e Email-it",
+        "sending": "Duke dërguar...",
+        "resendButton": "Ridërgo Email-in e Verifikimit"
     },
     "security": {
+        "title": "Siguria",
         "password": "Fjalëkalimi",
+        "passwordLength": "Fjalëkalimi i ri duhet të ketë të paktën 6 karaktere.",
         "verySecure": "Shumë i sigurt",
+        "strong": "I fortë",
+        "medium": "Mesatar",
+        "weak": "I dobët",
+        "generatePassword": "Gjenero Fjalëkalim",
+        "passwordCopied": "Fjalëkalimi u kopjua!",
         "edit": "Ndrysho",
         "deleteAccount": "Fshi Llogarinë",
         "deleteAccountDesc": "Fshi përgjithmonë llogarinë tuaj dhe të gjitha të dhënat e lidhura.",
@@ -287,7 +495,9 @@
         "deleteAccountTitle": "Fshi Llogarinë",
         "deleteWarning": "Pas fshirjes së llogarisë tuaj, të dhënat tuaja do të hiqen përgjithmonë. Ky veprim nuk mund të zhbëhet.",
         "enterPassword": "Vendosni fjalëkalimin tuaj për të konfirmuar",
-        "deleting": "Duke fshirë..."
+        "deleting": "Duke fshirë...",
+        "forgotPasswordText": "Harruat fjalëkalimin? Dërgo ",
+        "resetLinkPart": "linkun e rivendosjes"
     },
     "notifications": {
         "title": "Njoftimet",
@@ -368,6 +578,7 @@
     "newPrint": {
         "title": "Punë e Re Printimi",
         "jobName": "Emri i Punës",
+        "description": "Përshkrimi",
         "filament": "Filamenti",
         "status": "Statusi",
         "duration": "Kohëzgjatja (HH:mm:ss)",
@@ -403,6 +614,14 @@
         "resetButton": "Rivendos Fjalëkalimin",
         "resetting": "Duke rivendosur...",
         "backToLogin": "Kthehu te Hyrja"
+    },
+    "systemMessages": {
+        "phaseUpdated": "Faza u përditësua në {{phase}}",
+        "taskStarted": "filloi detyrën.",
+        "taskPaused": "pauzoi detyrën.",
+        "taskResumed": "rifilloi detyrën.",
+        "taskCompleted": "përfundoi detyrën.",
+        "taskRecut": "kërkoi riprerje."
     },
     "chat": {
         "title": "MechBot",
@@ -466,5 +685,10 @@
                 }
             }
         }
+    },
+    "notFound": {
+        "title": "Faqja nuk u gjend",
+        "description": "Na vjen keq, faqja që po kërkoni nuk ekziston ose mund të jetë zhvendosur.",
+        "backHome": "Kthehu në Ballinë"
     }
 }

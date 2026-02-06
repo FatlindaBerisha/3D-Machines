@@ -9,6 +9,8 @@ import ResetPassword from './components/ResetPassword';
 import Terms from './components/Terms';
 import Privacy from './components/Privacy';
 import VerifyEmail from './components/VerifyEmail';
+import ConfirmEmailChange from './components/ConfirmEmailChange';
+import NotFound from './components/NotFound';
 
 import DashboardLayout from './components/layout/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -126,6 +128,11 @@ export default function App() {
               }
             />
 
+            <Route
+              path="/confirm-email-change"
+              element={<ConfirmEmailChange />}
+            />
+
             {/* PROTECTED ADMIN ROUTES */}
             <Route
               path="/dashboard/admin"
@@ -170,6 +177,9 @@ export default function App() {
               <Route path="preferences" element={<UserPreferences />} />
               <Route path="notifications" element={<UserNotification />} />
             </Route>
+
+            {/* CATCH ALL - 404 */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatAssistant />
         </Router>

@@ -57,9 +57,11 @@ export default function UserProjects() {
       a.click();
 
       window.URL.revokeObjectURL(url);
-      toast.success("Download successful!");
+
+      toast.success(t('toasts.downloadSuccess'));
     } catch (err) {
-      toast.error("Download failed");
+      console.error("Download error:", err);
+      toast.error(t('toasts.downloadFailed'));
     }
   };
 

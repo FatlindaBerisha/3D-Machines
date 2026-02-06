@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
-import { MdEdit, MdDelete } from "react-icons/md";
+import { FaEdit, FaTrash, FaClipboardList, FaCalendarAlt, FaPrint, FaFlask, FaCheckCircle, FaPauseCircle } from "react-icons/fa";
+import { HiScissors } from "react-icons/hi2";
 import EditCutJobForm from "./EditCutJobForm";
-import Pagination from "../Pagination";
+import CutJobDetailsModal from "./CutJobDetailsModal";
+
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import api from "../../../utils/axiosClient";
@@ -19,14 +22,28 @@ export default function UserCutLog() {
         materialId: "",
         status: "Pending",
         duration: "",
+        description: "",
     });
 
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const [materials, setMaterials] = useState([]);
+    const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "");
     const toastIdRef = useRef(null);
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const jobsPerPage = 5;
+    const [selectedJobId, setSelectedJobId] = useState(null);
 
+    function openDetails(jobId) {
+        setSelectedJobId(jobId);
+    }
+
+    function closeDetails() {
+        setSelectedJobId(null);
+    }
+
+    // -------------------------------------------------------
+    // Merge materials into cutJob list
+    // -------------------------------------------------------
     function mergeJobsWithMaterialNames(jobs, materials) {
         const materialMap = {};
         materials.forEach(m => { materialMap[m.id] = m.name; });
@@ -37,28 +54,30 @@ export default function UserCutLog() {
         }));
     }
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const [resJobs, resMaterials] = await Promise.all([
-                    api.get("/cutjob/my"),
-                    api.get("/materialsuser"),
-                ]);
+    // -------------------------------------------------------
+    // FETCH DATA (axios)
+    // -------------------------------------------------------
+    async function fetchData() {
+        try {
+            const [resJobs, resMaterials] = await Promise.all([
+                api.get("/cutjob/my"),
+                api.get("/materialsuser"),
+            ]);
 
-                setMaterials(resMaterials.data);
-                setCutJobs(mergeJobsWithMaterialNames(resJobs.data, resMaterials.data));
-            } catch (err) {
-                toast.error(t('toasts.loadDataFailed'));
-            }
+            setMaterials(resMaterials.data);
+            setCutJobs(mergeJobsWithMaterialNames(resJobs.data, resMaterials.data));
+        } catch (err) {
+            toast.error(err?.response?.data?.message || t('toasts.loadDataFailed'));
         }
+    }
 
+    useEffect(() => {
         fetchData();
-    }, [t]);
+    }, []);
 
-    const totalPages = Math.ceil(cutJobs.length / jobsPerPage);
-    const indexOfLastJob = currentPage * jobsPerPage;
-    const currentJobs = cutJobs.slice(indexOfLastJob - jobsPerPage, indexOfLastJob);
-
+    // -------------------------------------------------------
+    // EDIT MODAL OPEN
+    // -------------------------------------------------------
     function openEditModal(job) {
         let durationMinutes = "";
 
@@ -75,6 +94,7 @@ export default function UserCutLog() {
             materialId: String(job.materialId),
             status: job.status,
             duration: durationMinutes,
+            description: job.description || "",
         });
 
         setIsEditing(true);
@@ -88,9 +108,13 @@ export default function UserCutLog() {
             materialId: "",
             status: "Pending",
             duration: "",
+            description: "",
         });
     }
 
+    // -------------------------------------------------------
+    // Edit Form Change
+    // -------------------------------------------------------
     function handleEditChange(e) {
         const { name, value } = e.target;
         setEditForm(prev => ({ ...prev, [name]: value }));
@@ -104,14 +128,17 @@ export default function UserCutLog() {
         return `${hours}:${mins}:00`;
     }
 
+    // -------------------------------------------------------
+    // SUBMIT EDIT (axios)
+    // -------------------------------------------------------
     async function handleEditSubmit(e) {
         e.preventDefault();
 
         if (!editForm.jobName.trim()) return toast.error(t('toasts.jobNameRequired'));
-        if (!editForm.materialId) return toast.error("Please select a material");
+        if (!editForm.materialId) return toast.error(t('toasts.selectMaterial'));
 
-        if (editForm.status === "Completed" && !editForm.duration) {
-            return toast.error("Duration is required when status is Completed");
+        if (editForm.duration && (isNaN(editForm.duration) || editForm.duration < 0)) {
+            return toast.error(t('toasts.durationPositive'));
         }
 
         const payload = {
@@ -125,12 +152,15 @@ export default function UserCutLog() {
                     : editForm.duration
                         ? formatDuration(editForm.duration)
                         : null,
+            description: editForm.description,
         };
 
         try {
             await api.put(`/cutjob/${editForm.id}`, payload);
-            toast.success("Cut job updated!");
 
+            toast.success(t('toasts.cutJobUpdated'));
+
+            // Refresh jobs after update
             const [resJobs, resMaterials] = await Promise.all([
                 api.get("/cutjob/my"),
                 api.get("/materialsuser"),
@@ -140,10 +170,13 @@ export default function UserCutLog() {
             setCutJobs(mergeJobsWithMaterialNames(resJobs.data, resMaterials.data));
             closeEditModal();
         } catch (err) {
-            toast.error("Failed to update cut job");
+            toast.error(err?.response?.data?.error || t('toasts.updateCutJobFailed'));
         }
     }
 
+    // -------------------------------------------------------
+    // DELETE (axios)
+    // -------------------------------------------------------
     function showDeleteConfirm(id) {
         if (toastIdRef.current) {
             toast.dismiss(toastIdRef.current);
@@ -182,20 +215,78 @@ export default function UserCutLog() {
     async function handleDelete(id) {
         try {
             await api.delete(`/cutjob/${id}`);
-            toast.success("Cut job deleted!");
+
+            toast.success(t('toasts.cutJobDeleted'));
             setCutJobs(prev => prev.filter(job => job.id !== id));
         } catch (err) {
-            toast.error("Failed to delete cut job");
+            toast.error(t('toasts.deleteCutJobFailed'));
         }
     }
 
+    // -------------------------------------------------------
+    // DRAG AND DROP HANDLERS
+    // -------------------------------------------------------
+    function handleDragStart(e, jobId) {
+        e.dataTransfer.setData("jobId", jobId);
+    }
+
+    async function handleDrop(e, newStatus) {
+        e.preventDefault();
+        const jobId = parseInt(e.dataTransfer.getData("jobId"), 10);
+        const job = cutJobs.find((j) => j.id === jobId);
+
+        if (!job || job.status === newStatus) return;
+
+        // Optimistic Update
+        const originalStatus = job.status;
+        setCutJobs((prev) =>
+            prev.map((j) => (j.id === jobId ? { ...j, status: newStatus } : j))
+        );
+
+        try {
+            const payload = {
+                id: job.id,
+                jobName: job.jobName,
+                materialId: job.materialId,
+                status: newStatus,
+                duration: job.duration, // Keep existing duration
+                description: job.description, // Keep existing description
+            };
+
+            await api.put(`/cutjob/${job.id}`, payload);
+            toast.success(t('toasts.statusUpdated'));
+        } catch (err) {
+            // Revert on failure
+            setCutJobs((prev) =>
+                prev.map((j) => (j.id === jobId ? { ...j, status: originalStatus } : j))
+            );
+            toast.error(t('toasts.statusUpdateFailed'));
+        }
+    }
+
+    // -------------------------------------------------------
+    // FORMATTERS
+    // -------------------------------------------------------
     function getStatusTranslation(status) {
-        const statusMap = {
-            "Pending": t('common.pending'),
-            "In Progress": t('common.inProgress'),
-            "Completed": t('common.completed')
-        };
-        return statusMap[status] || status;
+        // Hardcoded fallback if keys missing
+        if (status === "Pending") return t('kanban.todo') || "ToDo";
+        if (status === "In Progress") return t('kanban.inProgress') || "In Progress";
+        if (status === "Testing") return t('kanban.testing') || "Testing";
+        if (status === "Completed") return t('kanban.done') || "Done";
+        if (status === "Paused") return t('kanban.onHold') || "On Hold";
+        if (status === "Meetings") return t('kanban.meetings') || "Meetings";
+        return status;
+    }
+
+    function getStatusIcon(status) {
+        const style = { color: 'white', marginRight: '8px', fontSize: '18px' };
+        if (status === "Pending") return <FaClipboardList style={style} />;
+        if (status === "Meetings") return <FaCalendarAlt style={style} />;
+        if (status === "In Progress") return <HiScissors style={style} />;
+        if (status === "Testing") return <FaFlask style={style} />;
+        if (status === "Completed") return <FaCheckCircle style={style} />;
+        if (status === "Paused") return <FaPauseCircle style={style} />;
+        return null;
     }
 
     function formatDate(dateStr) {
@@ -208,6 +299,9 @@ export default function UserCutLog() {
         });
     }
 
+    // -------------------------------------------------------
+    // EXPORT TO EXCEL
+    // -------------------------------------------------------
     function exportToExcel() {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet("My Cut Jobs");
@@ -250,9 +344,20 @@ export default function UserCutLog() {
         });
     }
 
+    // -------------------------------------------------------
+    // UI
+    // -------------------------------------------------------
     return (
         <div className="printlog-container">
             <h2 className="printlog-title">{t('cutLogs.myTitle')}</h2>
+
+            {selectedJobId && (
+                <CutJobDetailsModal
+                    jobId={selectedJobId}
+                    onClose={closeDetails}
+                    onUpdate={fetchData}
+                />
+            )}
 
             {isEditing && (
                 <div className="modal-overlay" onClick={closeEditModal}>
@@ -263,63 +368,109 @@ export default function UserCutLog() {
                             onChange={handleEditChange}
                             onCancel={closeEditModal}
                             onSubmit={handleEditSubmit}
+                            editingId={editForm.id}
                         />
                     </div>
                 </div>
             )}
 
-            {cutJobs.length === 0 ? (
-                <p className="no-printjobs-message">{t('cutLogs.noCutJobs')}</p>
-            ) : (
-                <>
-                    <div style={{ marginBottom: "8px", textAlign: "right" }}>
-                        <button className="export-excel-btn" onClick={exportToExcel}>
-                            <i className="bi bi-file-earmark-excel-fill"></i> {t('cutLogs.export')}
+            <div style={{ marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <select
+                        className="status-filter-select"
+                        value={selectedStatus}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setSelectedStatus(val);
+                            if (val) searchParams.set("status", val);
+                            else searchParams.delete("status");
+                            setSearchParams(searchParams);
+                        }}
+                        style={{ padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '150px', fontSize: '14px', cursor: 'pointer' }}
+                    >
+                        <option value="">{t('common.all')}</option>
+                        {["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"].map(s => (
+                            <option key={s} value={s}>{getStatusTranslation(s)}</option>
+                        ))}
+                    </select>
+                    {selectedStatus && (
+                        <button
+                            onClick={() => {
+                                setSelectedStatus("");
+                                searchParams.delete("status");
+                                setSearchParams(searchParams);
+                            }}
+                            className="icon-btn"
+                            title={t('common.all')}
+                            style={{ padding: '8px', color: '#666', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            <i className="bi bi-x-lg" style={{ fontSize: '14px' }}></i>
                         </button>
-                    </div>
+                    )}
+                </div>
+                <button className="export-excel-btn" onClick={exportToExcel} style={{ marginBottom: 0 }}>
+                    <i className="bi bi-file-earmark-excel-fill"></i> {t('cutLogs.export')}
+                </button>
+            </div>
 
-                    <table className="printlog-table">
-                        <thead>
-                            <tr>
-                                <th>{t('cutLogs.jobName')}</th>
-                                <th>{t('cutLogs.material')}</th>
-                                <th>{t('cutLogs.status')}</th>
-                                <th>{t('cutLogs.duration')}</th>
-                                <th>{t('cutLogs.createdAt')}</th>
-                                <th className="actions-cell">{t('common.edit')}</th>
-                                <th className="actions-cell">{t('common.delete')}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentJobs.map((job) => (
-                                <tr key={job.id}>
-                                    <td>{job.jobName}</td>
-                                    <td>{job.materialName || "-"}</td>
-                                    <td>
-                                        <span className={`printlog-status printlog-status-${job.status.toLowerCase().replace(" ", "-")}`}>
-                                            {getStatusTranslation(job.status)}
-                                        </span>
-                                    </td>
-                                    <td>{job.duration || "-"}</td>
-                                    <td>{formatDate(job.createdAt)}</td>
-                                    <td className="actions-cell">
-                                        <button onClick={() => openEditModal(job)} className="printlog-icon-btn edit">
-                                            <MdEdit />
-                                        </button>
-                                    </td>
-                                    <td className="actions-cell">
-                                        <button onClick={() => showDeleteConfirm(job.id)} className="printlog-icon-btn delete">
-                                            <MdDelete />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            <div className="kanban-board">
+                {["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"].map((columnStatus) => {
+                    const columnJobs = cutJobs.filter((job) => {
+                        if (selectedStatus && job.status !== selectedStatus) return false;
 
-                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-                </>
-            )}
+                        if (columnStatus === "Pending") return job.status === "Pending" || job.status === "Waiting";
+                        if (columnStatus === "In Progress") return job.status === "In Progress" || job.status === "Preparing" || job.status === "File Ready" || job.status === "Machine Setup" || job.status === "Cutting" || job.status === "Cooling" || job.status === "Post-Processing";
+                        if (columnStatus === "Completed") return job.status === "Completed" || job.status === "Done";
+                        if (columnStatus === "Paused") return job.status === "Paused" || job.status === "Failed";
+                        return job.status === columnStatus;
+                    });
+                    return (
+                        <div
+                            key={columnStatus}
+                            className={`kanban-column column-${columnStatus.toLowerCase().replace(" ", "-")}`}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => handleDrop(e, columnStatus)}
+                        >
+                            <h3>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    {getStatusIcon(columnStatus)}
+                                    {getStatusTranslation(columnStatus)}
+                                </div>
+                                <span>({columnJobs.length})</span>
+                            </h3>
+                            <div className="kanban-column-content">
+                                {columnJobs.map((job) => (
+                                    <div
+                                        key={job.id}
+                                        className="kanban-card"
+                                        draggable
+                                        onDragStart={(e) => handleDragStart(e, job.id)}
+                                        onClick={() => openDetails(job.id)}
+                                    >
+                                        <div className="card-header">
+                                            <span className="job-name">{job.jobName}</span>
+                                        </div>
+                                        <div className="card-body">
+                                            {job.materialName && (
+                                                <div className="card-tag">
+                                                    {job.materialName}
+                                                </div>
+                                            )}
+
+                                            <div className="card-footer">
+                                                <span className="card-date">{formatDate(job.createdAt)}</span>
+                                                <div className="user-avatar-mini" title={job.user?.fullName}>
+                                                    {job.user?.fullName ? job.user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : '?'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }

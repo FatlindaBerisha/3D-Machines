@@ -52,7 +52,18 @@
         "save": "Änderungen speichern",
         "cancel": "Abbrechen",
         "updating": "Aktualisierung...",
-        "profileUpdated": "Profil erfolgreich aktualisiert!"
+        "profileUpdated": "Profil erfolgreich aktualisiert!",
+        "changeEmail": "Ändern",
+        "emailChangeRequested": "Bestätigungs-E-Mail an Ihre neue Adresse gesendet. Bitte überprüfen Sie Ihren Posteingang.",
+        "pendingEmailCheck": "Ausstehende Bestätigung für:",
+        "changeEmailModal": {
+            "title": "E-Mail-Adresse ändern",
+            "description": "Geben Sie Ihre neue E-Mail-Adresse und Ihr aktuelles Passwort ein. Wir senden einen Bestätigungslink an Ihre neue E-Mail.",
+            "newEmail": "Neue E-Mail-Adresse",
+            "currentPassword": "Aktuelles Passwort",
+            "submit": "Bestätigung senden",
+            "cancel": "Abbrechen"
+        }
     },
     "genderOptions": {
         "female": "Weiblich",
@@ -88,7 +99,20 @@
     },
     "dashboard": {
         "welcomeUser": "Willkommen Benutzer im Dashboard",
-        "welcomeAdmin": "Willkommen Administrator im Dashboard"
+        "welcomeAdmin": "Willkommen Administrator im Dashboard",
+        "statistics": "Statistiken",
+        "totalPrints": "Gesamte Drucke",
+        "totalCuts": "Gesamte Schnitte",
+        "activePrints": "Aktive Drucke",
+        "activeCuts": "Aktive Schnitte",
+        "completedJobs": "Abgeschlossene Aufgaben",
+        "failedJobs": "Fehlgeschlagene Aufgaben",
+        "totalUsers": "Gesamtbenutzer",
+        "printStatusDist": "Druckstatus-Verteilung",
+        "cutStatusDist": "Schnittstatus-Verteilung",
+        "noData": "Keine Daten verfügbar",
+        "activeTasks": "Aktive Aufgaben",
+        "myStats": "Meine Statistiken"
     },
     "preferences": {
         "title": "Präferenzen",
@@ -220,6 +244,7 @@
         "error": "Fehler",
         "success": "Erfolg",
         "warning": "Warnung",
+        "all": "Alle",
         "info": "Info",
         "male": "Männlich",
         "female": "Weiblich",
@@ -230,12 +255,117 @@
         "unknown": "Unbekannt",
         "pending": "Ausstehend",
         "inProgress": "In Bearbeitung",
-        "completed": "Abgeschlossen"
+        "completed": "Abgeschlossen",
+        "edited": "Bearbeitet",
+        "paused": "Pausiert",
+        "waiting": "Wartend",
+        "preparing": "Vorbereiten",
+        "printing": "Drucken",
+        "postProcessing": "Nachbearbeitung",
+        "failed": "Fehlgeschlagen"
+    },
+    "printWorkflow": {
+        "statuses": {
+            "waiting": "Wartend",
+            "preparing": "Vorbereiten",
+            "printing": "Drucken",
+            "postProcessing": "Nachbearbeitung",
+            "completed": "Abgeschlossen",
+            "failed": "Fehlgeschlagen"
+        },
+        "quickActions": {
+            "startPrint": "Druck starten",
+            "pause": "Pausieren",
+            "resume": "Fortsetzen",
+            "markCompleted": "Abgeschlossen",
+            "markFailed": "Fehlgeschlagen"
+        },
+        "messageTags": {
+            "fileUploaded": "Datei hochgeladen",
+            "slicerSettings": "Slicer-Einstellungen",
+            "printerIssue": "Druckerproblem",
+            "materialChange": "Materialwechsel",
+            "calibrationNote": "Kalibrierungshinweis",
+            "general": "Allgemein"
+        },
+        "printSettings": {
+            "title": "Druckeinstellungen",
+            "printer": "Drucker",
+            "material": "Material",
+            "layerHeight": "Schichthöhe",
+            "nozzle": "Düse",
+            "infill": "Füllung",
+            "timeEstimate": "Zeitschätzung"
+        },
+        "pinMessage": "An Beschreibung anheften",
+        "systemMessage": "System",
+        "printPhases": {
+            "preparing": "Vorbereiten",
+            "fileReady": "Datei Bereit",
+            "slicing": "Slicing",
+            "printerSetup": "Druckereinrichtung",
+            "printing": "Drucken",
+            "cooling": "Abkühlen",
+            "postProcessing": "Nachbearbeitung",
+            "testPrint": "Testdruck",
+            "reprintNeeded": "Neudruck Erforderlich",
+            "done": "Fertig",
+            "timeEstimate": "Zeitschätzung"
+        }
+    },
+    "cutWorkflow": {
+        "cutSettings": {
+            "title": "Schneideeinstellungen",
+            "machine": "Maschine",
+            "speed": "Vorschub / Geschwindigkeit",
+            "power": "Werkzeug / Laserleistung",
+            "timeEstimate": "Zeitschätzung",
+            "thickness": "Materialstärke",
+            "operationType": "Operationstyp",
+            "passes": "Durchgänge"
+        },
+        "cutPhases": {
+            "title": "Schneidephase",
+            "waiting": "Wartend",
+            "preparing": "Vorbereitung",
+            "fileReady": "Datei bereit",
+            "toolpathReady": "Werkzeugpfad Bereit",
+            "machineSetup": "Maschineneinrichtung",
+            "cutting": "Schneiden",
+            "finishing": "Fertigstellung",
+            "cooling": "Abkühlen",
+            "postProcessing": "Nachbearbeitung",
+            "completed": "Abgeschlossen",
+            "recutNeeded": "Nachschnitt Nötig",
+            "done": "Erledigt"
+        },
+        "tags": {
+            "fileUploaded": "Datei Hochgeladen",
+            "toolpathUpdated": "Werkzeugpfad Aktualisiert",
+            "machineIssue": "Maschinenproblem",
+            "materialIssue": "Materialproblem",
+            "dimensionCheck": "Maßkontrolle"
+        },
+        "quickActions": {
+            "approveFile": "Datei Genehmigen",
+            "generateToolpath": "Werkzeugpfad Erstellen",
+            "startCutting": "Schneiden Starten",
+            "pause": "Pausieren",
+            "completed": "Fertigstellen",
+            "recut": "Nachschnitt Anfordern"
+        }
+    },
+    "kanban": {
+        "todo": "ToDo",
+        "inProgress": "In Bearbeitung",
+        "testing": "Testen",
+        "done": "Fertig",
+        "onHold": "In Wartestellung",
+        "meetings": "Besprechungen"
     },
     "toasts": {
         "loginSuccess": "Anmeldung erfolgreich!",
         "logoutMessage": "Sie wurden abgemeldet. Bitte melden Sie sich erneut an.",
-        "fillAllFields": "Bitte füllen Sie beide Felder aus.",
         "invalidEmail": "Ungültiges E-Mail-Format.",
         "invalidResponse": "Ungültige Antwort vom Server.",
         "emailNotVerified": "Ihre E-Mail ist nicht verifiziert. Bitte überprüfen Sie Ihren Posteingang.",
@@ -268,10 +398,63 @@
         "invalidToken": "Ungültiger oder fehlender Token.",
         "durationRequired": "Bitte geben Sie eine Dauer an, bevor Sie als Abgeschlossen markieren.",
         "incorrectPassword": "Falsches Passwort.",
-        "deleteAccountFailed": "Löschen des Kontos fehlgeschlagen."
+        "deleteAccountFailed": "Löschen des Kontos fehlgeschlagen.",
+        "welcomeBack": "Willkommen zurück, {{name}}!",
+        "accountLocked": "Anmeldung fehlgeschlagen. Zu viele Versuche. Versuchen Sie es in {{minutes}} Minuten erneut.",
+        "userNotFound": "Benutzer nicht gefunden.",
+        "fullNameLength": "Der vollständige Name muss mindestens 3 Buchstaben umfassen.",
+        "invalidPhone": "Bitte geben Sie eine gültige Telefonnummer ein.",
+        "passwordCriteria": "Das Passwort muss Großbuchstaben, Kleinbuchstaben, Zahlen und Symbole enthalten.",
+        "fillRequiredFields": "Bitte füllen Sie alle erforderlichen Felder aus.",
+        "registrationSuccess": "Registrierung erfolgreich! Bitte überprüfen Sie Ihre E-Mail, um Ihr Konto zu verifizieren.",
+        "registrationFailed": "Registrierung fehlgeschlagen.",
+        "emailAlreadyInUse": "E-Mail wird bereits verwendet.",
+        "emailVerifiedSuccess": "E-Mail erfolgreich verifiziert.",
+        "verificationProcessing": "Verifizierung wird verarbeitet, bitte warten...",
+        "verificationMissingToken": "Verifizierungslink enthält keinen Token.",
+        "verificationFailed": "Ungültiger oder abgelaufener Verifizierungslink.",
+        "fillAllFields": "Bitte füllen Sie alle Felder aus.",
+        "resendSuccess": "Eine neue Bestätigungs-E-Mail wurde gesendet.",
+        "resendFailed": "Bestätigungs-E-Mail konnte nicht erneut gesendet werden.",
+        "enterEmailResend": "Bitte geben Sie Ihre E-Mail-Adresse ein.",
+        "emailAlreadyVerified": "E-Mail ist bereits verifiziert.",
+        "emailNotRegistered": "E-Mail ist nicht registriert.",
+        "downloadSuccess": "Download erfolgreich!",
+        "downloadFailed": "Download fehlgeschlagen",
+        "failedFetchProjects": "Projekte konnten nicht geladen werden",
+        "printJobCreated": "Druckauftrag erstellt!",
+        "descriptionRequired": "Beschreibung ist erforderlich.",
+        "failedFetchMaterials": "Materialien konnten nicht geladen werden",
+        "selectMaterial": "Bitte wählen Sie ein Material",
+        "cutJobCreated": "Schneideauftrag erstellt!",
+        "cutJobUpdated": "Schneideauftrag aktualisiert!",
+        "updateCutJobFailed": "Schneideauftrag konnte nicht aktualisiert werden",
+        "cutJobDeleted": "Schneideauftrag gelöscht!",
+        "deleteCutJobFailed": "Schneideauftrag konnte nicht gelöscht werden",
+        "moduleNameRequired": "Modulname ist erforderlich",
+        "selectFile": "Bitte wählen Sie eine Datei",
+        "projectDeleted": "Projekt gelöscht!",
+        "projectCreated": "Projekt erstellt!",
+        "projectUpdated": "Projekt aktualisiert!",
+        "saveProjectFailed": "Projekt konnte nicht gespeichert werden",
+        "deleteProjectFailed": "Projekt konnte nicht gelöscht werden",
+        "passwordUpdated": "Passwort aktualisiert!",
+        "accountDeleted": "Konto gelöscht.",
+        "genericUpdateFailed": "Aktualisierung fehlgeschlagen",
+        "loadProfileFailed": "Profil konnte nicht geladen werden"
+    },
+    "verifyEmail": {
+        "title": "E-Mail verifizieren",
+        "processing": "Ihre Verifizierung wird bearbeitet, bitte warten...",
+        "redirecting": "Weiterleitung zur Anmeldeseite...",
+        "enterEmail": "Geben Sie unten Ihre E-Mail ein, um einen neuen Bestätigungslink zu erhalten.",
+        "emailAddress": "E-Mail-Adresse",
+        "sending": "Senden...",
+        "resendButton": "Bestätigungs-E-Mail erneut senden"
     },
     "security": {
         "password": "Passwort",
+        "passwordLength": "Das neue Passwort muss mindestens 6 Zeichen lang sein.",
         "verySecure": "Sehr sicher",
         "edit": "Bearbeiten",
         "deleteAccount": "Konto löschen",
@@ -287,7 +470,9 @@
         "deleteAccountTitle": "Konto löschen",
         "deleteWarning": "Nach dem Löschen Ihres Kontos werden Ihre Daten dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
         "enterPassword": "Geben Sie Ihr Passwort zur Bestätigung ein",
-        "deleting": "Löschen..."
+        "deleting": "Löschen...",
+        "forgotPasswordText": "Passwort vergessen? ",
+        "resetLinkPart": "Link zum Zurücksetzen senden"
     },
     "notifications": {
         "title": "Benachrichtigungen",
@@ -368,6 +553,7 @@
     "newPrint": {
         "title": "Neuer Druckauftrag",
         "jobName": "Auftragsname",
+        "description": "Beschreibung",
         "filament": "Filament",
         "status": "Status",
         "duration": "Dauer (HH:mm:ss)",
@@ -403,6 +589,14 @@
         "resetButton": "Passwort zurücksetzen",
         "resetting": "Zurücksetzen...",
         "backToLogin": "Zurück zur Anmeldung"
+    },
+    "systemMessages": {
+        "phaseUpdated": "Phase aktualisiert auf {{phase}}",
+        "taskStarted": "hat die Aufgabe gestartet.",
+        "taskPaused": "hat die Aufgabe pausiert.",
+        "taskResumed": "hat die Aufgabe fortgesetzt.",
+        "taskCompleted": "hat die Aufgabe abgeschlossen.",
+        "taskRecut": "hat Nachschnitt angefordert."
     },
     "chat": {
         "title": "MechBot",
@@ -466,5 +660,10 @@
                 }
             }
         }
+    },
+    "notFound": {
+        "title": "Seite nicht gefunden",
+        "description": "Entschuldigung, die von Ihnen gesuchte Seite existiert nicht oder wurde verschoben.",
+        "backHome": "Zurück zur Startseite"
     }
 }

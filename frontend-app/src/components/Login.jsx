@@ -10,7 +10,7 @@ import logo from '../assets/logo.png';
 
 export default function LoginForm() {
   const { setUser } = useContext(UserContext);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,7 +72,7 @@ export default function LoginForm() {
     await delay(800);
 
     try {
-      const res = await api.post("/auth/login", { email, password });
+      const res = await api.post("/auth/login", { email, password, language: i18n.language });
 
       const data = res.data;
 
@@ -83,11 +83,10 @@ export default function LoginForm() {
 
       removeAuth();
 
-      const storage = rememberMe ? localStorage : sessionStorage;
-
-      storage.setItem("jwtToken", data.token);
+      // ALWAYS use localStorage for auth (so new tabs work)
+      localStorage.setItem("jwtToken", data.token);
       if (data.refreshToken) {
-        storage.setItem("refreshToken", data.refreshToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
       }
 
       let decodedEmail = "";
@@ -100,8 +99,9 @@ export default function LoginForm() {
           "";
       } catch { }
 
-      storage.setItem("loggedIn", "true");
+      localStorage.setItem("loggedIn", "true");
 
+      // "Remember Me" only controls saving the email for next time
       if (rememberMe) {
         localStorage.setItem('savedEmail', decodedEmail || email);
       } else {
@@ -119,26 +119,49 @@ export default function LoginForm() {
         email: decodedEmail || email,
       };
 
-      storage.setItem("user", JSON.stringify(userObj));
+      localStorage.setItem("user", JSON.stringify(userObj));
+
+      // Update Context immediately so app knows user is logged in
+      setUser(userObj);
 
       localStorage.setItem('loginSession', 'active');
 
-      setUser(userObj);
+      // Store welcome name for Dashboard to show
+      const welcomeName = userObj.fullName || userObj.email.split('@')[0];
+      localStorage.setItem('welcomeName', welcomeName);
 
-      toast.success(t('toasts.loginSuccess'), {
-        autoClose: 900,
-        onClose: () => {
-          navigate(userObj.role === "admin" ? "/dashboard/admin" : "/dashboard/user");
-        },
-      });
+      // Navigate immediately
+      navigate(userObj.role === "admin" ? "/dashboard/admin" : "/dashboard/user");
 
     } catch (err) {
       let msg = err?.response?.data?.message || err?.response?.data || t('toasts.loginFailed');
+      const lowerMsg = msg.toLowerCase();
 
-      if (msg.toLowerCase().includes("email not verified")) {
+      if (lowerMsg.includes("email not verified")) {
         toast.error(t('toasts.emailNotVerified'));
         return;
       }
+
+      if (lowerMsg.includes("incorrect password")) {
+        toast.error(t('toasts.incorrectPassword'));
+        return;
+      }
+
+      if (lowerMsg.includes("user not found")) {
+        toast.error(t('toasts.userNotFound'));
+        return;
+      }
+
+      // Detect lockout messages
+      if (lowerMsg.includes("too many attempts") || lowerMsg.includes("locked")) {
+        // Try to extract minutes
+        const minutesMatch = msg.match(/(\d+)\s*minutes/i) || msg.match(/(\d+)\s*min/i);
+        const minutes = minutesMatch ? minutesMatch[1] : "15";
+
+        toast.error(t('toasts.accountLocked', { minutes }));
+        return;
+      }
+
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -154,7 +177,7 @@ export default function LoginForm() {
       </div>
 
       <div className="right-panel">
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <img src={logo} alt="Logo" className="logo-img" />
 
           <div className="input-group">

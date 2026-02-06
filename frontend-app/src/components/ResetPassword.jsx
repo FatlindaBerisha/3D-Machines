@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FiArrowLeft } from "react-icons/fi";
@@ -6,9 +6,10 @@ import { useTranslation } from "react-i18next";
 import api from "../utils/axiosClient";
 
 export default function ResetPassword() {
-  const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  const { t, i18n } = useTranslation();
+  const [params] = useSearchParams();
+  const token = params.get("token");
+  const lng = params.get("lng");
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
@@ -16,12 +17,27 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isValidToken, setIsValidToken] = useState(true);
+
+  useEffect(() => {
+    if (lng && i18n.language !== lng) {
+      i18n.changeLanguage(lng);
+    }
+    if (!token) {
+      setIsValidToken(false);
+    }
+  }, [token, lng, i18n]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!password || !confirmPassword) {
-      toast.error(t('toasts.fillBothFields'));
+      toast.error(t('toasts.fillAllFields'));
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error(t('security.passwordLength'));
       return;
     }
 
@@ -33,21 +49,22 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      await api.post("/auth/reset-password", {
+      await api.post("/user/reset-password", {
         token,
         newPassword: password,
       });
 
       toast.success(t('toasts.passwordResetSuccess'));
 
-      setTimeout(() => navigate("/"), 1500);
+      setTimeout(() => navigate("/login"), 2000);
 
     } catch (err) {
-      toast.error(
-        err?.response?.data ||
-        err?.response?.data?.message ||
-        t('toasts.resetPasswordFailed')
-      );
+      const msg = err?.response?.data?.message || err?.response?.data;
+      if (typeof msg === 'string' && msg.toLowerCase().includes("invalid")) {
+        toast.error(t('toasts.invalidToken'));
+      } else {
+        toast.error(t('toasts.resetPasswordFailed'));
+      }
     } finally {
       setLoading(false);
     }
@@ -57,7 +74,7 @@ export default function ResetPassword() {
 
   return (
     <div className="forgot-wrapper">
-      <form className="forgot-form" onSubmit={handleSubmit}>
+      <form className="forgot-form" onSubmit={handleSubmit} noValidate>
         <h2 className="forgot-title">{t('resetPassword.title')}</h2>
         <p className="forgot-description">
           {t('resetPassword.description')}
