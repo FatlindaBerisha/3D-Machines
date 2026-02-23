@@ -16,6 +16,7 @@ backend-app/*.pdb
 backend-app/*.cache
 backend-app/*.log
 backend-app/appsettings.json
+backend-app/appsettings.Development.json
 
 # Visual Studio / Editor files
 .vscode/

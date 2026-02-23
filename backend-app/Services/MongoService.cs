@@ -14,8 +14,8 @@ namespace backend_app.Services
         public IMongoCollection<MongoUser> MongoUsers => _db.GetCollection<MongoUser>("users");
         public MongoService(IConfiguration cfg)
         {
-            var conn = cfg["MongoSettings:ConnectionString"] ?? "mongodb://localhost:27017";
-            var dbName = cfg["MongoSettings:DatabaseName"] ?? "Project3DMachines";
+            var conn = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? cfg["MongoSettings:ConnectionString"] ?? "mongodb://localhost:27017";
+            var dbName = Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME") ?? cfg["MongoSettings:DatabaseName"] ?? "Project3DMachines";
             var client = new MongoClient(conn);
             _db = client.GetDatabase(dbName);
             _bucket = new GridFSBucket(_db);

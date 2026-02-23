@@ -26,7 +26,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // JWT Authentication
-var jwtSecretKey = builder.Configuration["JwtSettings:SecretKey"];
+var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? builder.Configuration["JwtSettings:SecretKey"];
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
