@@ -296,40 +296,42 @@ export default function AdminFilaments() {
         <p className="no-filaments-message">{t('filaments.noFilaments')}</p>
       ) : (
         <>
-          <table className="filament-table">
-            <thead>
-              <tr>
-                <th>{t('filaments.name')}</th>
-                <th>{t('filaments.color')}</th>
-                <th>{t('filaments.material')}</th>
-                <th>{t('filaments.diameter')}</th>
-                <th>{t('filaments.description')}</th>
-                <th>{t('filaments.edit')}</th>
-                <th>{t('filaments.delete')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentFilaments.map((f) => (
-                <tr key={f.id}>
-                  <td>{f.name}</td>
-                  <td>{f.color}</td>
-                  <td>{f.materialType}</td>
-                  <td>{f.diameter}</td>
-                  <td>{f.description}</td>
-                  <td>
-                    <button onClick={() => openEditModal(f)} className="edit">
-                      <MdEdit />
-                    </button>
-                  </td>
-                  <td>
-                    <button onClick={() => handleDelete(f.id)} className="delete">
-                      <MdDelete />
-                    </button>
-                  </td>
+          <div className="filament-table-wrapper">
+            <table className="filament-table">
+              <thead>
+                <tr>
+                  <th>{t('filaments.name')}</th>
+                  <th>{t('filaments.color')}</th>
+                  <th>{t('filaments.material')}</th>
+                  <th>{t('filaments.diameter')}</th>
+                  <th>{t('filaments.description')}</th>
+                  <th>{t('filaments.edit')}</th>
+                  <th>{t('filaments.delete')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentFilaments.map((f) => (
+                  <tr key={f.id}>
+                    <td data-label={t('filaments.name')}>{f.name}</td>
+                    <td data-label={t('filaments.color')}>{f.color}</td>
+                    <td data-label={t('filaments.material')}>{f.materialType}</td>
+                    <td data-label={t('filaments.diameter')}>{f.diameter}</td>
+                    <td data-label={t('filaments.description')}>{f.description}</td>
+                    <td data-label={t('filaments.edit')}>
+                      <button onClick={() => openEditModal(f)} className="edit">
+                        <MdEdit />
+                      </button>
+                    </td>
+                    <td data-label={t('filaments.delete')}>
+                      <button onClick={() => handleDelete(f.id)} className="delete">
+                        <MdDelete />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <Pagination
             currentPage={currentPage}

@@ -286,40 +286,42 @@ export default function AdminMaterials() {
                 <p className="no-filaments-message">{t('materials.noMaterials')}</p>
             ) : (
                 <>
-                    <table className="filament-table">
-                        <thead>
-                            <tr>
-                                <th>{t('materials.name')}</th>
-                                <th>{t('materials.color')}</th>
-                                <th>{t('materials.materialType')}</th>
-                                <th>{t('materials.thickness')}</th>
-                                <th>{t('materials.description')}</th>
-                                <th>{t('materials.edit')}</th>
-                                <th>{t('materials.delete')}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentMaterials.map((m) => (
-                                <tr key={m.id}>
-                                    <td>{m.name}</td>
-                                    <td>{m.color}</td>
-                                    <td>{m.materialType}</td>
-                                    <td>{m.thickness}</td>
-                                    <td>{m.description}</td>
-                                    <td>
-                                        <button onClick={() => openEditModal(m)} className="edit">
-                                            <MdEdit />
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button onClick={() => handleDelete(m.id)} className="delete">
-                                            <MdDelete />
-                                        </button>
-                                    </td>
+                    <div className="filament-table-wrapper">
+                        <table className="filament-table">
+                            <thead>
+                                <tr>
+                                    <th>{t('materials.name')}</th>
+                                    <th>{t('materials.color')}</th>
+                                    <th>{t('materials.materialType')}</th>
+                                    <th>{t('materials.thickness')}</th>
+                                    <th>{t('materials.description')}</th>
+                                    <th>{t('materials.edit')}</th>
+                                    <th>{t('materials.delete')}</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {currentMaterials.map((m) => (
+                                    <tr key={m.id}>
+                                        <td>{m.name}</td>
+                                        <td>{m.color}</td>
+                                        <td>{m.materialType}</td>
+                                        <td>{m.thickness}</td>
+                                        <td>{m.description}</td>
+                                        <td>
+                                            <button onClick={() => openEditModal(m)} className="edit">
+                                                <MdEdit />
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button onClick={() => handleDelete(m.id)} className="delete">
+                                                <MdDelete />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
                     <Pagination
                         currentPage={currentPage}

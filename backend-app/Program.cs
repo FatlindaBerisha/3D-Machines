@@ -10,7 +10,8 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(x =>
+   x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 builder.Services.AddEndpointsApiExplorer();
 
 // Swagger/OpenAPI 3.0 setup
@@ -42,16 +43,29 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
         RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
+        policy.SetIsOriginAllowed(_ => true) // Support any origin including IPs
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials());
+              .AllowCredentials()); // Essential for SignalR
 });
 
 // MongoDB
@@ -83,7 +97,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Commented out to prevent local network redirection errors
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();

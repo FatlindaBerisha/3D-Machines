@@ -19,4 +19,14 @@
     public string? VerificationToken { get; set; }
     public DateTime? VerificationTokenExpiry { get; set; }
     public bool IsEmailVerified { get; set; }
+
+    public int AccessFailedCount { get; set; } = 0;
+    public DateTime? LockoutEnd { get; set; }
+    public int LockoutCount { get; set; } = 0;
+
+    // Email Change Fields
+    public string? PendingEmail { get; set; }
+    public string? EmailChangeToken { get; set; }
+    public DateTime? EmailChangeTokenExpiry { get; set; }
+    public string PreferredLanguage { get; set; } = "en";
 }

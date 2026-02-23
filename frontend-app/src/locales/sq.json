@@ -98,6 +98,7 @@
         "cutFiles": "Skedarët e Prerjes"
     },
     "task": {
+        "createdOn": "Krijuar më",
         "owner": "Krijuesi i detyrës",
         "assignee": "Përgjegjësi",
         "created": "Krijuar",
@@ -108,11 +109,13 @@
         "start": "Fillo",
         "pause": "Pauzo",
         "resume": "Rifillo",
+        "job": "Detyra",
         "finish": "Përfundo",
         "complete": "Përfundo",
         "completedAt": "Përfunduar në",
         "chat": "Biseda e detyrës",
-        "members": "anëtarë"
+        "members": "anëtarë",
+        "removeParticipantConfirm": "A jeni të sigurt që dëshironi ta hiqni këtë pjesëmarrës?"
     },
     "dashboard": {
         "welcomeUser": "Mirë se vini Përdorues në Panel",
@@ -248,27 +251,24 @@
         "german": "Gjermanisht"
     },
     "common": {
+        "all": "Të gjitha",
         "add": "Shto",
         "save": "Ruaj",
         "cancel": "Anulo",
         "edit": "Ndrysho",
         "delete": "Fshi",
-        "search": "Kërko",
-        "filter": "Filtro",
-        "export": "Eksporto",
-        "import": "Importo",
-        "loading": "Duke u ngarkuar...",
-        "error": "Gabim",
-        "success": "Sukses",
-        "warning": "Paralajmërim",
-        "all": "Të gjithë",
+        "filter": "Filtër",
+        "resetFilters": "Rivendos filtrat",
+        "allStatuses": "Të gjitha statuset",
+        "allUsers": "Të gjithë",
+        "user": "Përdoruesi",
+        "status": "Statusi",
         "info": "Informacion",
         "male": "Mashkull",
         "female": "Femër",
         "student": "Student",
         "engineer": "Inxhinier",
         "designer": "Dizajner",
-        "user": "Përdoruesi",
         "unknown": "I panjohur",
         "pending": "Në Pritje",
         "inProgress": "Në Proces",
@@ -428,6 +428,7 @@
         "fillRequiredFields": "Ju lutemi plotësoni të gjitha fushat e kërkuara.",
         "registrationSuccess": "Regjistrimi ishte i suksesshëm! Ju lutemi kontrolloni email-in tuaj për të verifikuar llogarinë.",
         "registrationFailed": "Regjistrimi dështoi.",
+        "printPhaseUpdated": "Faza e Printimit u përditësua",
         "emailAlreadyInUse": "Ky email është tashmë në përdorim.",
         "emailVerifiedSuccess": "Email-i u verifikua me sukses.",
         "verificationProcessing": "Duke përpunuar verifikimin tuaj, ju lutemi prisni...",
@@ -460,7 +461,9 @@
         "passwordUpdated": "Fjalëkalimi u përditësua!",
         "accountDeleted": "Llogaria u fshi.",
         "genericUpdateFailed": "Përditësimi dështoi",
-        "loadProfileFailed": "Dështoi ngarkimi i profilit"
+        "loadProfileFailed": "Dështoi ngarkimi i profilit",
+        "participantAdded": "Pjesëmarrësi u shtua",
+        "participantRemoved": "Pjesëmarrësi u hoq"
     },
     "verifyEmail": {
         "title": "Verifikoni Email-in Tuaj",
@@ -518,7 +521,20 @@
         "newUserRegistered": "Përdorues i Ri u Regjistrua",
         "newUserDesc": "Merrni njoftime kur një përdorues i ri bashkohet sistemit",
         "markAllRead": "Shëno të gjitha si të lexuara",
-        "noNotifications": "Nuk ka njoftime"
+        "noNotifications": "Nuk ka njoftime",
+        "owner_job_msg": "Puna e {{type}} '{{jobName}}' u {{action}}.",
+        "admin_job_msg": "{{userName}} {{action}} punën e {{type}} '{{jobName}}'.",
+        "actions": {
+            "created": "krijua",
+            "updated": "përditësua",
+            "started": "fillua",
+            "paused": "ndalua",
+            "finished": "përfundua"
+        },
+        "types": {
+            "print": "Printimit",
+            "cut": "Prerjes"
+        }
     },
     "terms": {
         "title": "Kushtet e Shërbimit",
@@ -621,11 +637,20 @@
         "taskPaused": "pauzoi detyrën.",
         "taskResumed": "rifilloi detyrën.",
         "taskCompleted": "përfundoi detyrën.",
-        "taskRecut": "kërkoi riprerje."
+        "taskRecut": "kërkoi riprerje.",
+        "statusChanged": "ndryshoi statusin në"
     },
     "chat": {
         "title": "MechBot",
         "clearHistory": "Fshij bisedën",
+        "startCall": "Fillo Video Thirrje",
+        "incomingCall": "Thirrje Hyrëse",
+        "callInvitation": "{{senderName}} dëshiron të bisedojë rreth \"{{jobName}}\"",
+        "isCalling": "{{name}} po ju thërret",
+        "accept": "Prano",
+        "decline": "Refuzo",
+        "selectParticipant": "Zgjidh Pjesëmarrësin",
+        "call": "Thirr",
         "welcomeMessage": "Përshëndetje! Unë jam MechBot. Si mund t'ju ndihmoj sot në lidhje me 3D Machines?",
         "placeholder": "Pyetni çdo gjë...",
         "connectionError": "Më falni, po kam probleme me lidhjen me shërbimin.",
@@ -684,6 +709,28 @@
                     "question": "A është falas?"
                 }
             }
+        }
+    },
+    "webRTC": {
+        "status": {
+            "connecting": "Duke u lidhur…",
+            "connected": "Lidhur",
+            "ice": "ICE: {{status}}"
+        },
+        "overlays": {
+            "incoming": "THIRRJE HYRËSE",
+            "calling": "DUKE THIRRUR…",
+            "cameraDisabled": "{{name}} KA NDALUAR KAMERËN",
+            "incomingVideoCall": "Thirrje Video Hyrëse",
+            "outgoingVideoCall": "Thirrje Video Dalëse",
+            "you": "JU"
+        },
+        "controls": {
+            "mute": "Hesht",
+            "unmute": "Dëgjo",
+            "camera": "Kamera",
+            "noCamera": "Pa Kam",
+            "endCall": "Mbyll"
         }
     },
     "notFound": {

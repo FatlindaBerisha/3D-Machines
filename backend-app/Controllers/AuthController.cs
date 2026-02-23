@@ -41,6 +41,7 @@ namespace backend_app.Controllers
             public string Email { get; set; }
             public string Password { get; set; }
             public string Gender { get; set; }
+            public string Language { get; set; } = "en";
         }
 
         [HttpPost("register")]
@@ -77,7 +78,8 @@ namespace backend_app.Controllers
 
                     VerificationToken = verificationToken,
                     VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15),
-                    IsEmailVerified = true // Auto-verified for development
+                    IsEmailVerified = true,
+                    PreferredLanguage = request.Language
                 };
 
                 _context.Users.Add(user);
@@ -86,12 +88,11 @@ namespace backend_app.Controllers
                 // Send verification email to user
                 try
                 {
-                    _emailService.SendVerificationEmail(user);
+                    _emailService.SendVerificationEmail(user, request.Language);
                 }
                 catch (Exception emailEx)
                 {
                     Console.WriteLine("Warning: Could not send verification email. " + emailEx.Message);
-                    // Continue flow - user is created, just email failed.
                 }
                 
                 return Ok(new
@@ -115,6 +116,12 @@ namespace backend_app.Controllers
                     return BadRequest("Email and password are required.");
 
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
+                // Check if user is locked out
+                if (user != null && user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTime.UtcNow)
+                {
+                    var remainingMinutes = (int)Math.Ceiling((user.LockoutEnd.Value - DateTime.UtcNow).TotalMinutes);
+                    return StatusCode(423, new { message = $"Login failed. Too many attempts. Try again in {remainingMinutes} minutes." });
+                }
 
                 if (user == null)
                     return NotFound("Email not registered.");
@@ -124,7 +131,36 @@ namespace backend_app.Controllers
 
                 bool verified = BCrypt.Net.BCrypt.Verify(request.Password, user.Password);
                 if (!verified)
+                {
+                    // Increment failed attempts
+                    user.AccessFailedCount++;
+                    if (user.AccessFailedCount >= 5)
+                    {
+                        // Progressive lockout: 1st=15min, 2nd=30min, 3rd+=60min
+                        user.LockoutCount++;
+                        int lockoutMinutes = user.LockoutCount == 1 ? 15 
+                                           : user.LockoutCount == 2 ? 30 
+                                           : 60;
+                        user.LockoutEnd = DateTime.UtcNow.AddMinutes(lockoutMinutes);
+                        user.AccessFailedCount = 0; // reset after lockout
+
+                        await _context.SaveChangesAsync();
+
+                        // Send security alert email
+                        try
+                        {
+                            _emailService.SendSuspiciousLoginEmail(user, lockoutMinutes, request.Language ?? user.PreferredLanguage);
+                        }
+                        catch (Exception emailEx)
+                        {
+                            Console.WriteLine("Warning: Could not send suspicious login email. " + emailEx.Message);
+                        }
+
+                        return StatusCode(423, new { message = $"Login failed. Too many attempts. Try again in {lockoutMinutes} minutes." });
+                    }
+                    await _context.SaveChangesAsync();
                     return BadRequest("Incorrect password.");
+                }
 
                 if (user.Role == "admin" && user.Email.ToLower() != "fatlindab2019@gmail.com")
                     return Forbid("Access denied for this admin email.");
@@ -146,15 +182,20 @@ namespace backend_app.Controllers
                 // Debug log to confirm saved refresh token (length only — avoid printing full token in prod)
                 Console.WriteLine($"Login: saved refresh token len={refreshToken?.Length} for userId={user.Id}");
 
-                return Ok(new
-                {
-                    token,
-                    refreshToken,
-                    role = user.Role,
-                    fullName = user.FullName,
-                    profession = user.Profession,
-                    gender = user.Gender
-                });
+                // Successful login: reset failed attempts and lockout
+                user.AccessFailedCount = 0;
+                user.LockoutEnd = null;
+                user.LockoutCount = 0; // Reset progressive lockout
+                await _context.SaveChangesAsync();
+            return Ok(new
+            {
+                token,
+                refreshToken,
+                role = user.Role,
+                fullName = user.FullName,
+                profession = user.Profession,
+                gender = user.Gender
+            });
             }
             catch (Exception ex)
             {
@@ -279,10 +320,10 @@ namespace backend_app.Controllers
             await _context.SaveChangesAsync();
 
             // Notify admin
-            _emailService.SendVerifiedUserEmail(user);
+            _emailService.SendVerifiedUserEmail(user, user.PreferredLanguage);
 
             // Send welcome email to the user
-            _emailService.SendWelcomeEmail(user);
+            _emailService.SendWelcomeEmail(user, user.PreferredLanguage);
 
             return Ok(new { message = "Email verified successfully." });
         }
@@ -307,7 +348,7 @@ namespace backend_app.Controllers
 
                 try
                 {
-                    _emailService.SendPasswordResetEmail(user.Email, resetToken, user.FullName);
+                    _emailService.SendPasswordResetEmail(user.Email, resetToken, user.FullName, request.Language);
                 }
                 catch (Exception ex)
                 {
@@ -328,6 +369,7 @@ namespace backend_app.Controllers
         public class ForgotPasswordRequest
         {
             public string Email { get; set; }
+            public string Language { get; set; } = "en";
         }
 
         [HttpPost("reset-password")]
@@ -377,7 +419,8 @@ namespace backend_app.Controllers
                 new Claim(ClaimTypes.Role, user.Role),
                 new Claim("FullName", user.FullName),
                 new Claim(JwtRegisteredClaimNames.Jti, sessionId),
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString())
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecretKey));
@@ -408,6 +451,7 @@ namespace backend_app.Controllers
         {
             public string Email { get; set; }
             public string Password { get; set; }
+            public string? Language { get; set; }
         }
 
         public class RefreshTokenRequest
@@ -465,7 +509,7 @@ namespace backend_app.Controllers
             user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
             await _context.SaveChangesAsync();
 
-            _emailService.SendVerificationEmail(user);
+            _emailService.SendVerificationEmail(user, request.Language ?? user.PreferredLanguage);
 
             return Ok(new { message = "A new verification email has been sent." });
         }
@@ -473,6 +517,65 @@ namespace backend_app.Controllers
         public class ResendVerificationRequest
         {
             public string Email { get; set; }
+            public string? Language { get; set; }
+        }
+
+        // CONFIRM EMAIL CHANGE
+        public class ConfirmEmailChangeRequest
+        {
+            public string Token { get; set; }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("confirm-email-change")]
+        public async Task<IActionResult> ConfirmEmailChange([FromBody] ConfirmEmailChangeRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Token))
+                return BadRequest(new { message = "Token is required." });
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.EmailChangeToken == request.Token);
+            if (user == null)
+                return BadRequest(new { message = "Invalid or expired token." });
+
+            if (!user.EmailChangeTokenExpiry.HasValue || user.EmailChangeTokenExpiry.Value < DateTime.UtcNow)
+                return BadRequest(new { message = "Email change token has expired." });
+
+            if (string.IsNullOrWhiteSpace(user.PendingEmail))
+                return BadRequest(new { message = "No pending email change found." });
+
+            // Check if the new email is still available
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.PendingEmail);
+            if (existingUser != null)
+                return BadRequest(new { message = "This email is no longer available." });
+
+            // Update email
+            user.Email = user.PendingEmail;
+            user.PendingEmail = null;
+            user.EmailChangeToken = null;
+            user.EmailChangeTokenExpiry = null;
+
+            await _context.SaveChangesAsync();
+
+            // Generate new tokens with updated email
+            var token = GenerateJwtToken(user);
+            var refreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenCreated = DateTime.UtcNow;
+            user.RefreshTokenRevoked = null;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Email changed successfully.",
+                token,
+                refreshToken,
+                role = user.Role,
+                fullName = user.FullName,
+                email = user.Email
+            });
         }
     }
 }

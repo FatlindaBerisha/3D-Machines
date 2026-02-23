@@ -573,3 +573,73 @@ td:hover .downloads-dropdown {
   margin-right: 8px;
   color: #4374ba;
 }
+
+/* Responsive Filament Manager (Scroll) */
+.filament-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+  border: 1px solid #e2e8f0;
+}
+
+.filament-table {
+  min-width: 900px;
+  margin-top: 0;
+  box-shadow: none;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.filament-table th:first-child {
+  border-top-left-radius: 0;
+}
+
+.filament-table th:last-child {
+  border-top-right-radius: 0;
+}
+
+.filament-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 0;
+}
+
+.filament-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 0;
+}
+
+@media (max-width: 768px) {
+  .filament-container {
+    padding: 15px;
+    width: 95%;
+    max-width: 100%;
+    margin: 10px auto;
+  }
+
+  .filament-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Form Responsive (Stacked Inputs) */
+  .row-inputs {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .printlog-buttons {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .printlog-buttons button {
+    width: 100%;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+}

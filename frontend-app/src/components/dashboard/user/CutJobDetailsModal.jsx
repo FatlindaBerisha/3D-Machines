@@ -2,13 +2,16 @@ import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { getToken } from "../../../utils/storage";
 import api from "../../../utils/axiosClient";
+import Preloader from "../../common/Preloader";
 import "../../styles/PrintLog.css"; // Reusing same styles for identical look
-import { MdClose, MdSend, MdAttachFile, MdInsertEmoticon, MdCall, MdSearch, MdCheck, MdPushPin, MdWarning, MdLabel, MdSettings } from "react-icons/md";
+import { MdClose, MdSend, MdAttachFile, MdInsertEmoticon, MdCall, MdSearch, MdCheck, MdPushPin, MdWarning, MdLabel, MdSettings, MdAdd } from "react-icons/md";
 import { IoPencil, IoTrash } from "react-icons/io5";
-import { HiPrinter, HiScissors } from "react-icons/hi2";
+import { HiPrinter, HiScissors, HiPhone } from "react-icons/hi2";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
-import EmojiPicker from 'emoji-picker-react';
+import { getConnection, safeInvoke } from "../../../utils/signalRConnection";
+import WebRTCCall from "../../WebRTCCall";
+
 
 export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
     const { t, i18n } = useTranslation();
@@ -23,7 +26,10 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
     const [editedCommentText, setEditedCommentText] = useState("");
     const [isEditingDescription, setIsEditingDescription] = useState(false);
     const [editedDescription, setEditedDescription] = useState("");
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [callData, setCallData] = useState(null);
+    const [showParticipantSelector, setShowParticipantSelector] = useState(false);
+    const [participantsToCall, setParticipantsToCall] = useState([]);
+
     const [messageTag, setMessageTag] = useState("");
     const [isEditingSettings, setIsEditingSettings] = useState(false);
     const [cutSettings, setCutSettings] = useState({
@@ -36,10 +42,9 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
         passes: ""
     });
     const [cutPhase, setCutPhase] = useState("Preparing");
+    const [chatSearchQuery, setChatSearchQuery] = useState("");
+    const [isChatSearchOpen, setIsChatSearchOpen] = useState(false);
 
-    const onEmojiClick = (emojiObject) => {
-        setNewComment(prev => prev + emojiObject.emoji);
-    };
 
     // Auto-scroll chat
     const chatEndRef = useRef(null);
@@ -102,39 +107,27 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
     async function handleStart() {
         try {
             await api.post(`/cutjob/${jobId}/start`);
-            // Auto-log start
-            await api.post(`/cutjob/${jobId}/comments`, {
-                text: t('systemMessages.taskStarted'),
-                tag: "System"
-            });
             fetchJobDetails();
             onUpdate();
+            toast.success(t('toasts.jobStarted') || "Job started");
         } catch (err) { toast.error("Failed to start job"); }
     }
 
     async function handlePause() {
         try {
             await api.post(`/cutjob/${jobId}/pause`);
-            // Auto-log pause
-            await api.post(`/cutjob/${jobId}/comments`, {
-                text: t('systemMessages.taskPaused'),
-                tag: "System"
-            });
             fetchJobDetails();
             onUpdate();
+            toast.success(t('toasts.jobPaused') || "Job paused");
         } catch (err) { toast.error("Failed to pause job"); }
     }
 
     async function handleFinish() {
         try {
             await api.post(`/cutjob/${jobId}/finish`);
-            // Auto-log finish
-            await api.post(`/cutjob/${jobId}/comments`, {
-                text: t('systemMessages.taskCompleted'),
-                tag: "System"
-            });
             fetchJobDetails();
             onUpdate();
+            toast.success(t('toasts.jobCompleted') || "Job completed");
         } catch (err) { toast.error("Failed to finish job"); }
     }
 
@@ -152,49 +145,96 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
         } catch (err) { toast.error("Failed to add comment"); }
     }
 
-    async function handleAddParticipant(userIdOrEvent) {
-        let uid = userIdOrEvent;
-        if (typeof userIdOrEvent === 'object' && userIdOrEvent.preventDefault) return;
-        if (typeof userIdOrEvent === 'string') uid = parseInt(userIdOrEvent, 10);
-        if (!uid && selectedUser) uid = parseInt(selectedUser, 10);
-        if (!uid) return;
+    async function handleAddParticipant() {
+        if (!selectedUser) return;
 
         try {
-            await api.post(`/cutjob/${jobId}/participants`, { userId: uid });
-            toast.success("Participant added");
+            await api.post(`/cutjob/${jobId}/participants`, { userId: parseInt(selectedUser, 10) });
+            toast.success(t('toasts.participantAdded'));
             setSelectedUser("");
             fetchJobDetails();
-        } catch (err) { toast.error("Failed to add participant"); }
+        } catch (err) { toast.error(t('toasts.genericUpdateFailed')); }
     }
 
     async function handleRemoveParticipant(userId) {
-        if (!window.confirm("Remove this participant?")) return;
+        if (!window.confirm(t('task.removeParticipantConfirm'))) return;
         try {
             await api.delete(`/cutjob/${jobId}/participants/${userId}`);
-            toast.success("Participant removed");
+            toast.success(t('toasts.participantRemoved'));
             fetchJobDetails();
-        } catch (err) { toast.error("Failed to remove participant"); }
+        } catch (err) { toast.error(t('toasts.genericUpdateFailed')); }
     }
 
-    const handleCall = () => {
-        const others = [];
-        if (job.user && job.user.id !== loggedInUserId) others.push(job.user);
-        job.participants?.forEach(p => {
-            if (p.user && p.user.id !== loggedInUserId) others.push(p.user);
+    const handleCall = (targetUserId) => {
+        if (!targetUserId) {
+            toast.info("Please select a user to call.");
+            return;
+        }
+        const targetUser = users.find(u => u.id === parseInt(targetUserId, 10));
+        const targetUserName = targetUser?.fullName || "User " + targetUserId;
+        const senderName = users.find(u => u.id === loggedInUserId)?.fullName || "User " + loggedInUserId;
+        setCallData({
+            targetUserId,
+            targetUserName,
+            senderUserId: loggedInUserId,
+            senderName,
+            isIncoming: false,
+            jobId: job?.id,
+            jobType: 'cut',
+            jobName: job?.jobName || "Cut Job"
         });
+        setShowParticipantSelector(false);
+    };
 
-        if (others.length > 0) {
-            const person = others[0];
-            if (person.phone) {
-                window.location.href = `tel:${person.phone}`;
-                toast.success(`Calling ${person.fullName}...`);
-            } else {
-                toast.info(`${person.fullName} has no phone number recorded.`);
+    const handleInitiateCall = () => {
+        const others = [];
+        if (job.userId && job.userId !== loggedInUserId && job.user) {
+            others.push(job.user);
+        }
+        job.participants?.forEach(p => {
+            if (p.userId !== loggedInUserId && p.user && !others.some(o => o.id === p.userId)) {
+                others.push(p.user);
             }
+        });
+        if (loggedInUserId !== 1 && !others.some(o => o.id === 1)) {
+            const admin = users.find(u => u.id === 1);
+            if (admin) others.push(admin);
+        }
+
+        if (others.length === 0) {
+            toast.info("No participants available to call.");
+        } else if (others.length === 1) {
+            handleCall(others[0].id);
         } else {
-            toast.info("No other participants to call.");
+            setShowParticipantSelector(true);
         }
     };
+
+    // SignalR Incoming Call Listener
+    useEffect(() => {
+        const conn = getConnection();
+        if (!conn) return;
+
+        const handleCallInvitation = (senderId, offer) => {
+            console.log("[SignalR] Incoming call from:", senderId);
+            console.log("[SignalR] Current job state:", job);
+            console.log("[SignalR] Logged in user ID:", loggedInUserId);
+
+            const isCreator = job?.userId == senderId;
+            const isParticipant = job?.participants?.some(p => p.userId == senderId);
+
+            console.log("[SignalR] Permission check - isCreator:", isCreator, "isParticipant:", isParticipant);
+
+            if (isCreator || isParticipant) {
+                console.log("[SignalR] Call invitation accepted for display");
+                setCallData({ targetUserId: senderId, senderUserId: loggedInUserId, isIncoming: true, offer });
+            } else {
+                console.log("[SignalR] Call filtered out - user not recognized as part of this job");
+            }
+        };
+
+        return () => { };
+    }, [job, loggedInUserId]);
 
     async function handleEditComment(commentId) {
         if (!editedCommentText.trim()) return;
@@ -279,12 +319,14 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
 
 
 
-    if (loading) return (
-        <div className="modal-overlay">
-            <div className="loading-spinner" style={{ color: 'white', fontSize: '20px' }}>Loading...</div>
+    if (loading || !job) return (
+        <div className="modal-overlay" onClick={onClose} style={{ zIndex: 11000 }}>
+            <div className="modal-content details-modal" onClick={(e) => e.stopPropagation()} style={{ minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Preloader />
+            </div>
         </div>
     );
-    if (!job) return null;
+    const isOwner = Number(loggedInUserId) === Number(job.userId);
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -293,16 +335,16 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                 <div className="details-left-panel">
                     <div className="details-left-header">
                         <h2>{job.jobName}</h2>
-                        <p>{job.material?.name || "No Material"} • Created on {new Date(job.createdAt).toLocaleDateString()}</p>
+                        <p>{job.material?.name || t('materials.noMaterial')} • {t('task.createdOn')} {new Date(job.createdAt).toLocaleDateString()}</p>
                     </div>
 
                     {/* OWNER CHECK FOR EDITING */}
                     {(() => {
-                        const isOwner = loggedInUserId === job.userId;
+                        // isOwner, isAdmin, canEdit now defined at top level of render
 
                         return (
                             <>
-                                <div className="job-description-box" style={{ marginBottom: '20px', padding: '12px', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #4374ba', position: 'relative' }}>
+                                <div className="job-description-box" style={{ marginBottom: '20px', padding: '15px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', position: 'relative' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                                         <h4 style={{ margin: 0, fontSize: '13px', color: '#64748b', textTransform: 'uppercase' }}>{t('materials.description')}</h4>
                                         {isOwner && (
@@ -364,13 +406,7 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                                         </div>
                                     </div>
 
-                                    <div className="info-row">
-                                        <span className="info-label">{t('task.created')}:</span>
-                                        <div className="info-value">
-                                            <MdCheck style={{ color: '#4374ba', marginRight: '5px' }} />
-                                            {new Date(job.createdAt).toLocaleString(i18n.language === 'sq' ? 'sq-AL' : i18n.language === 'de' ? 'de-DE' : 'en-GB', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}  / ID: {job.id}
-                                        </div>
-                                    </div>
+
 
                                     <div className="info-row">
                                         <span className="info-label">{t('task.stage')}:</span>
@@ -391,7 +427,7 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                                                     {p.user?.fullName?.charAt(0)}
                                                 </div>
                                                 <span className="participant-name">{p.user?.fullName}</span>
-                                                {(loggedInUserRole === 'admin' || loggedInUserId === job.userId) && (
+                                                {isOwner && (
                                                     <MdClose
                                                         className="remove-participant-icon"
                                                         onClick={() => handleRemoveParticipant(p.user.id)}
@@ -401,25 +437,52 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                                             </div>
                                         ))}
 
-                                        {(loggedInUserId === job.userId || loggedInUserRole === 'admin') && (
-                                            <div className="add-participant-wrapper">
-                                                <button className="add-participant-btn" onClick={() => document.getElementById('user-select').focus()}>
-                                                    + {t('task.add')}
-                                                </button>
-                                                <select
-                                                    id="user-select"
-                                                    className="user-select-dropdown"
-                                                    value={selectedUser}
-                                                    onChange={(e) => {
-                                                        setSelectedUser(e.target.value);
-                                                        if (e.target.value) handleAddParticipant(e.target.value);
-                                                    }}
-                                                >
-                                                    <option value="">{t('task.selectUser')}</option>
-                                                    {users.filter(u => !job.participants?.some(p => p.userId === u.id) && u.id !== job.userId).map(u => (
-                                                        <option key={u.id} value={u.id}>{u.fullName}</option>
-                                                    ))}
-                                                </select>
+                                        {/* ADD PARTICIPANT - Only Owner */}
+                                        {isOwner && (
+                                            <div style={{ marginTop: '15px' }}>
+                                                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#334155', marginBottom: '5px', display: 'block' }}>
+                                                    {t('task.add')}
+                                                </label>
+                                                <div style={{ display: 'flex', gap: '10px' }}>
+                                                    <select
+                                                        value={selectedUser}
+                                                        onChange={(e) => setSelectedUser(e.target.value)}
+                                                        style={{
+                                                            flex: 1,
+                                                            padding: '8px',
+                                                            borderRadius: '6px',
+                                                            border: '1px solid #cbd5e1',
+                                                            fontSize: '13px'
+                                                        }}
+                                                    >
+                                                        <option value="">{t('task.selectUser')}</option>
+                                                        {users
+                                                            .filter(u => u.id !== job?.userId && !job.participants?.some(p => p.userId === u.id))
+                                                            .map(u => (
+                                                                <option key={u.id} value={u.id}>{u.fullName} ({u.profession})</option>
+                                                            ))}
+                                                    </select>
+                                                    <button
+                                                        onClick={handleAddParticipant}
+                                                        disabled={!selectedUser}
+                                                        style={{
+                                                            padding: '8px 16px',
+                                                            background: !selectedUser ? '#ccc' : '#2563eb',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '20px',
+                                                            cursor: !selectedUser ? 'not-allowed' : 'pointer',
+                                                            fontSize: '13px',
+                                                            fontWeight: '500',
+                                                            transition: 'background 0.2s',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '5px'
+                                                        }}
+                                                    >
+                                                        <MdAdd /> {t('common.add')}
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -560,7 +623,7 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                                 </div>
 
                                 {/* CUT PHASE */}
-                                <div className="print-phase-section" style={{ marginTop: '12px', padding: '15px', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                                <div className="print-phase-section" style={{ marginTop: '16px', padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                                     <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#0369a1', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <HiScissors /> {t('cutWorkflow.cutPhases.title') || "Cut Phase"}
                                     </h4>
@@ -601,7 +664,7 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                     {/* ACTION BAR */}
                     <div className="left-action-bar">
                         {/* ONLY OWNER CAN START/STOP */}
-                        {loggedInUserId === job.userId && (
+                        {isOwner && (
                             <>
                                 {job.status === "Pending" && (
                                     <button className="start-btn" onClick={handleStart}>{t('task.start')}</button>
@@ -633,24 +696,101 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                     <div className="chat-header">
                         <h3>
                             <span style={{ marginRight: '10px' }}>{t('task.chat')}</span>
-                            <span style={{ fontSize: '12px', color: '#777', fontWeight: 'normal' }}>
+                            <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.8)', fontWeight: 'normal' }}>
                                 {job.participants ? job.participants.length + 1 : 1} {t('task.members')}
                             </span>
                         </h3>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <MdCall
-                                style={{ color: '#0088cc', fontSize: '20px', cursor: 'pointer' }}
-                                onClick={handleCall}
-                                title="Start a call"
-                            />
-                            <MdSearch style={{ color: '#777', fontSize: '20px', cursor: 'pointer' }} />
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            {/* Call Button */}
+                            {(() => {
+                                const others = [];
+                                if (job.userId && job.userId !== loggedInUserId && job.user) {
+                                    others.push(job.user);
+                                }
+                                job.participants?.forEach(p => {
+                                    if (p.userId !== loggedInUserId && p.user && !others.some(o => o.id === p.userId)) {
+                                        others.push(p.user);
+                                    }
+                                });
+
+                                // Always allow calling User 1 (Administrator) if not me
+                                if (loggedInUserId !== 1 && !others.some(o => o.id === 1)) {
+                                    const admin = users.find(u => u.id === 1);
+                                    if (admin) others.push(admin);
+                                }
+
+                                if (others.length > 0) {
+                                    return (
+                                        <div className="call-dropdown-container" style={{ position: 'relative' }}>
+                                            <HiPhone
+                                                style={{ color: 'white', fontSize: '20px', cursor: 'pointer', opacity: 0.8 }}
+                                                onClick={handleInitiateCall}
+                                                title={t('chat.startCall', 'Start Video Call')}
+                                            />
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+
+                            {isChatSearchOpen ? (
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type="text"
+                                        value={chatSearchQuery}
+                                        onChange={(e) => setChatSearchQuery(e.target.value)}
+                                        placeholder={t('common.search')}
+                                        autoFocus
+                                        style={{
+                                            padding: '4px 8px',
+                                            borderRadius: '4px',
+                                            border: 'none',
+                                            fontSize: '12px',
+                                            width: '120px',
+                                            outline: 'none'
+                                        }}
+                                        onBlur={() => { if (!chatSearchQuery) setIsChatSearchOpen(false); }}
+                                    />
+                                    <MdClose // Changed from IoClose to MdClose for consistency
+                                        style={{
+                                            position: 'absolute',
+                                            right: '4px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            cursor: 'pointer',
+                                            color: '#64748b',
+                                            fontSize: '14px'
+                                        }}
+                                        onClick={() => { setChatSearchQuery(""); setIsChatSearchOpen(false); }}
+                                    />
+                                </div>
+                            ) : (
+                                <MdSearch
+                                    style={{ color: 'white', fontSize: '20px', cursor: 'pointer', opacity: 0.8 }}
+                                    onClick={() => setIsChatSearchOpen(true)}
+                                />
+                            )}
                         </div>
                     </div>
+
+                    {callData && (
+                        <WebRTCCall
+                            targetUserId={callData.targetUserId}
+                            senderUserId={loggedInUserId}
+                            isIncoming={callData.isIncoming}
+                            offer={callData.offer}
+                            onHangup={() => setCallData(null)}
+                        />
+                    )}
 
                     <div className="chat-stream">
                         {(() => {
                             const grouped = {};
-                            job.comments?.forEach(c => {
+                            const filteredComments = job.comments?.filter(c =>
+                                c.text.toLowerCase().includes(chatSearchQuery.toLowerCase())
+                            ) || [];
+
+                            filteredComments.forEach(c => {
                                 const date = new Date(c.createdAt).toLocaleDateString();
                                 if (!grouped[date]) grouped[date] = [];
                                 grouped[date].push(c);
@@ -666,11 +806,39 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                                         const isSystem = c.text.includes("paused the task") || c.text.includes("resumed the task") || c.text.includes("started the task") || c.text.includes("finished the task") || c.tag === "System" || c.tag === "Phase Update" || c.text.includes("changed status to") || c.text.includes("Phase updated to");
 
                                         if (isSystem) {
+                                            let displaySystemText = c.text;
+                                            if (c.text.includes("changed status to")) {
+                                                const parts = c.text.split("changed status to ");
+                                                if (parts.length > 1) {
+                                                    const status = parts[1].replace('.', '').trim();
+                                                    const statusMap = {
+                                                        "ToDo": "todo",
+                                                        "In Progress": "inProgress",
+                                                        "Testing": "testing",
+                                                        "Done": "done",
+                                                        "On Hold": "onHold",
+                                                        "Meetings": "meetings"
+                                                    };
+                                                    const key = statusMap[status] || status.toLowerCase();
+                                                    displaySystemText = `${t('systemMessages.statusChanged')} ${t(`kanban.${key}`)}`;
+                                                }
+                                            } else if (c.text.includes("started the task")) {
+                                                displaySystemText = t('systemMessages.taskStarted');
+                                            } else if (c.text.includes("paused the task")) {
+                                                displaySystemText = t('systemMessages.taskPaused');
+                                            } else if (c.text.includes("resumed the task")) {
+                                                displaySystemText = t('systemMessages.taskResumed');
+                                            } else if (c.text.includes("completed the task") || c.text.includes("finished the task")) {
+                                                displaySystemText = t('systemMessages.taskCompleted');
+                                            } else if (c.text.includes("requested recut")) {
+                                                displaySystemText = t('systemMessages.taskRecut');
+                                            }
+
                                             return (
                                                 <div key={c.id} className="chat-system-row">
                                                     <span className="system-user-badge">{c.user?.fullName}</span>
-                                                    <span className="system-text">{c.text}</span>
-                                                    <span className="system-time">{new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    <span className="system-text">{displaySystemText}</span>
+                                                    <span className="system-time">{new Date(c.createdAt + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                 </div>
                                             );
                                         }
@@ -682,7 +850,7 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                                             <div key={c.id} className={`chat-bubble-row ${isMe ? 'right' : 'left'}`} style={{ marginBottom: '12px' }}>
                                                 <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '8px' }}>
                                                     <div className="user-avatar-small" style={{ width: '28px', height: '28px', fontSize: '12px', minWidth: '28px' }}>
-                                                        {c.user?.fullName?.charAt(0) || "U"}
+                                                        {c.user?.fullName?.charAt(0).toUpperCase() || "U"}
                                                     </div>
 
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
@@ -743,7 +911,7 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
 
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', gap: '10px' }}>
                                                                     <span className="chat-meta" style={{ fontSize: '10px', opacity: 0.7 }}>
-                                                                        {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                        {new Date(c.createdAt + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                                     </span>
                                                                     <div className="bubble-actions" style={{ display: 'flex', gap: '4px', opacity: 0.6 }}>
                                                                         {isMe && (
@@ -776,17 +944,7 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
 
 
                     <form className="chat-input-wrapper" onSubmit={handleAddComment}>
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            {showEmojiPicker && (
-                                <div style={{ position: 'absolute', bottom: '45px', left: '0', zIndex: 999 }}>
-                                    <EmojiPicker onEmojiClick={onEmojiClick} width={300} height={400} emojiStyle="apple" />
-                                </div>
-                            )}
-                            <MdInsertEmoticon
-                                style={{ color: '#888', fontSize: '24px', cursor: 'pointer' }}
-                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                            />
-                        </div>
+
                         <input
                             type="file"
                             id="chat-file-input"
@@ -813,6 +971,107 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
                     </form>
                 </div>
             </div>
+            {showParticipantSelector && (
+                <div
+                    className="modal-overlay"
+                    style={{ zIndex: 12000 }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowParticipantSelector(false);
+                    }}
+                >
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{
+                        maxWidth: '400px',
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: '20px',
+                        padding: '25px',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 style={{ margin: 0, color: '#1e293b', fontSize: '18px', fontWeight: '800' }}>
+                                {t('chat.selectParticipant', 'Select Participant')}
+                            </h3>
+                            <MdClose style={{ cursor: 'pointer', fontSize: '24px', color: '#64748b' }} onClick={() => setShowParticipantSelector(false)} />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '25px' }}>
+                            {(() => {
+                                const others = [];
+                                if (job.userId && job.userId !== loggedInUserId && job.user) others.push(job.user);
+                                job.participants?.forEach(p => {
+                                    if (p.userId !== loggedInUserId && p.user && !others.some(o => o.id === p.userId)) others.push(p.user);
+                                });
+                                if (loggedInUserId !== 1 && !others.some(o => o.id === 1)) {
+                                    const admin = users.find(u => u.id === 1);
+                                    if (admin) others.push(admin);
+                                }
+
+                                return others.map(u => (
+                                    <div
+                                        key={u.id}
+                                        onClick={() => setParticipantsToCall([u.id])}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '15px', padding: '12px',
+                                            borderRadius: '12px', border: participantsToCall.includes(u.id) ? '2px solid #3d5afe' : '1px solid #e2e8f0',
+                                            background: participantsToCall.includes(u.id) ? '#f0f4ff' : 'white',
+                                            cursor: 'pointer', transition: 'all 0.2s ease'
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: '36px', height: '36px', borderRadius: '50%',
+                                            background: '#4374ba', color: 'white', display: 'flex',
+                                            alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 'bold'
+                                        }}>
+                                            {u.fullName?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '14px' }}>{u.fullName}</div>
+                                            <div style={{ fontSize: '12px', color: '#64748b' }}>ID: {u.id}</div>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={participantsToCall.includes(u.id)}
+                                            readOnly
+                                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                        />
+                                    </div>
+                                ));
+                            })()}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                onClick={() => setShowParticipantSelector(false)}
+                                style={{
+                                    flex: 1, padding: '12px', borderRadius: '12px', background: '#f1f5f9',
+                                    border: 'none', color: '#64748b', fontWeight: '800', cursor: 'pointer'
+                                }}
+                            >
+                                {t('profile.cancel')}
+                            </button>
+                            <button
+                                onClick={() => participantsToCall.length > 0 && handleCall(participantsToCall[0])}
+                                disabled={participantsToCall.length === 0}
+                                style={{
+                                    flex: 1, padding: '12px', borderRadius: '12px', background: '#3d5afe',
+                                    border: 'none', color: 'white', fontWeight: '800', cursor: 'pointer',
+                                    opacity: participantsToCall.length === 0 ? 0.5 : 1,
+                                    boxShadow: '0 4px 12px rgba(61, 90, 254, 0.3)'
+                                }}
+                            >
+                                {t('chat.call', 'Call')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {callData && (
+                <WebRTCCall
+                    {...callData}
+                    onHangup={() => setCallData(null)}
+                />
+            )}
         </div>
     );
 }

@@ -1,11 +1,11 @@
-import { removeAuth } from './storage';
+import { API_BASE_URL } from '../config';
 
 export async function logout({ revoke = true } = {}) {
   try {
     const refreshToken = localStorage.getItem('refreshToken');
     if (revoke && refreshToken) {
       try {
-        await fetch('http://localhost:5151/api/auth/revoke-token', {
+        await fetch(`${API_BASE_URL}/auth/revoke-token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken }),

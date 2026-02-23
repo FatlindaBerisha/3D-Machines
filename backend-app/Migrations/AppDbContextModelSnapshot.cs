@@ -30,9 +30,18 @@ namespace backend_app.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmailChangeToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EmailChangeTokenExpiry")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -45,11 +54,24 @@ namespace backend_app.Migrations
                     b.Property<bool>("IsEmailVerified")
                         .HasColumnType("bit");
 
+                    b.Property<int>("LockoutCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LockoutEnd")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PendingEmail")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreferredLanguage")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -101,18 +123,54 @@ namespace backend_app.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CutPhase")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<TimeSpan?>("Duration")
                         .HasColumnType("time");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("JobName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("LastResumedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Machine")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("MaterialId")
                         .HasColumnType("int");
 
+                    b.Property<string>("OperationType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Passes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Power")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Speed")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Thickness")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TimeEstimate")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
@@ -125,6 +183,65 @@ namespace backend_app.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("CutJobs");
+                });
+
+            modelBuilder.Entity("backend_app.Models.CutJobComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CutJobId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tag")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CutJobId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CutJobComments");
+                });
+
+            modelBuilder.Entity("backend_app.Models.CutJobParticipant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CutJobId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CutJobId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CutJobParticipants");
                 });
 
             modelBuilder.Entity("backend_app.Models.Filament", b =>
@@ -202,18 +319,48 @@ namespace backend_app.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<TimeSpan?>("Duration")
                         .HasColumnType("time");
 
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("FilamentId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Infill")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("JobName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("LastResumedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LayerHeight")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nozzle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrintPhase")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Printer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TimeEstimate")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
@@ -228,6 +375,65 @@ namespace backend_app.Migrations
                     b.ToTable("PrintJobs");
                 });
 
+            modelBuilder.Entity("backend_app.Models.PrintJobComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PrintJobId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tag")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PrintJobId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PrintJobComments");
+                });
+
+            modelBuilder.Entity("backend_app.Models.PrintJobParticipant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PrintJobId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PrintJobId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PrintJobParticipants");
+                });
+
             modelBuilder.Entity("backend_app.Models.CutJob", b =>
                 {
                     b.HasOne("backend_app.Models.Material", "Material")
@@ -239,10 +445,48 @@ namespace backend_app.Migrations
                     b.HasOne("User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Material");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend_app.Models.CutJobComment", b =>
+                {
+                    b.HasOne("backend_app.Models.CutJob", "CutJob")
+                        .WithMany("Comments")
+                        .HasForeignKey("CutJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CutJob");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend_app.Models.CutJobParticipant", b =>
+                {
+                    b.HasOne("backend_app.Models.CutJob", "CutJob")
+                        .WithMany("Participants")
+                        .HasForeignKey("CutJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CutJob");
 
                     b.Navigation("User");
                 });
@@ -258,12 +502,64 @@ namespace backend_app.Migrations
                     b.HasOne("User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Filament");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend_app.Models.PrintJobComment", b =>
+                {
+                    b.HasOne("backend_app.Models.PrintJob", "PrintJob")
+                        .WithMany("Comments")
+                        .HasForeignKey("PrintJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PrintJob");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend_app.Models.PrintJobParticipant", b =>
+                {
+                    b.HasOne("backend_app.Models.PrintJob", "PrintJob")
+                        .WithMany("Participants")
+                        .HasForeignKey("PrintJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PrintJob");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("backend_app.Models.CutJob", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("backend_app.Models.PrintJob", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Participants");
                 });
 #pragma warning restore 612, 618
         }

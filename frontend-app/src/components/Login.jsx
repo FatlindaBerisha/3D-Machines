@@ -9,7 +9,7 @@ import './styles/Form.css';
 import logo from '../assets/logo.png';
 
 export default function LoginForm() {
-  const { setUser } = useContext(UserContext);
+  const { setUser, setToken } = useContext(UserContext);
   const { t, i18n } = useTranslation();
 
   const [email, setEmail] = useState('');
@@ -123,6 +123,7 @@ export default function LoginForm() {
 
       // Update Context immediately so app knows user is logged in
       setUser(userObj);
+      setToken(data.token);
 
       localStorage.setItem('loginSession', 'active');
 

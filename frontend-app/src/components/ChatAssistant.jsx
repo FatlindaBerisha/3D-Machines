@@ -4,6 +4,7 @@ import { MdDelete } from "react-icons/md";
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../UserContext';
 import './styles/ChatAssistant.css';
+import { CHAT_URL } from '../config';
 
 const ChatAssistant = () => {
     const navigate = useNavigate();
@@ -52,6 +53,7 @@ const ChatAssistant = () => {
         setIsOpen(false);
     }, []);
 
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleClearHistory = () => {
@@ -80,7 +82,7 @@ const ChatAssistant = () => {
 
         try {
             const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
-            const response = await fetch('http://localhost:5151/api/chat', { // Updated port to 5151
+            const response = await fetch(CHAT_URL, { // Updated to use dynamic config
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

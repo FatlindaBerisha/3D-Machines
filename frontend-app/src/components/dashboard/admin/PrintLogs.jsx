@@ -2,13 +2,14 @@ import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
-import { FaEdit, FaTrash, FaClipboardList, FaCalendarAlt, FaPrint, FaFlask, FaCheckCircle, FaPauseCircle } from "react-icons/fa";
+import { FaEdit, FaTrash, FaClipboardList, FaCalendarAlt, FaPrint, FaFlask, FaCheckCircle, FaPauseCircle, FaFilter } from "react-icons/fa";
 import EditPrintJobForm from "../user/EditPrintJobForm";
 import PrintJobDetailsModal from "../user/PrintJobDetailsModal";
 
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import api from "../../../utils/axiosClient";
+import Preloader from "../../common/Preloader";
 import "../../styles/PrintLog.css";
 
 export default function PrintLogs() {
@@ -16,12 +17,15 @@ export default function PrintLogs() {
   const [printJobs, setPrintJobs] = useState([]);
   const [users, setUsers] = useState([]);
   const [filaments, setFilaments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Filtering
   const [selectedUser, setSelectedUser] = useState(""); // User ID to filter by, "" for all
   const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "");
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const filterMenuRef = useRef(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -46,6 +50,7 @@ export default function PrintLogs() {
 
   // FETCH DATA (axios)
   async function loadData() {
+    setLoading(true);
     try {
       const [jobsRes, userRes, filamentRes] = await Promise.all([
         api.get("/printjob"),
@@ -71,6 +76,8 @@ export default function PrintLogs() {
       setFilaments(filamentRes.data);
     } catch (err) {
       toast.error(t('toasts.loadDataFailed'));
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -78,14 +85,47 @@ export default function PrintLogs() {
     loadData();
   }, []);
 
+  // Click outside to close filter menu
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
+        setShowFilterMenu(false);
+      }
+    }
+    if (showFilterMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showFilterMenu]);
+
   // ------------------------------
   // FILTER
   // ------------------------------
+  // Helper helper to check if job belongs to a main category
+  function isJobInStatusCategory(job, category) {
+    if (category === "Pending") return job.status === "Pending" || job.status === "Waiting";
+    if (category === "Meetings") return job.status === "Meetings";
+    if (category === "In Progress") {
+      return ["In Progress", "Preparing", "File Ready", "Slicing", "Printer Setup", "Printing", "Cooling", "Post-Processing", "Test Print"].includes(job.status);
+    }
+    if (category === "Testing") return job.status === "Testing";
+    if (category === "Completed") return job.status === "Completed" || job.status === "Done";
+    if (category === "Paused") return ["Paused", "Failed", "Reprint Needed"].includes(job.status);
+    return job.status === category;
+  }
+
   const filteredJobs = printJobs.filter(j => {
     const userMatch = selectedUser ? j.userId === parseInt(selectedUser, 10) : true;
-    const statusMatch = selectedStatus ? j.status === selectedStatus : true;
+    const statusMatch = selectedStatus ? isJobInStatusCategory(j, selectedStatus) : true;
     return userMatch && statusMatch;
   });
+
+  const allColumns = ["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"];
+  const visibleColumns = selectedStatus ? [selectedStatus] : allColumns;
 
   // EDIT MODAL OPEN
   function openEditModal(job) {
@@ -343,6 +383,8 @@ export default function PrintLogs() {
     });
   }
 
+  if (loading) return <Preloader />;
+
   // UI
   return (
     <div className="printlog-container">
@@ -352,61 +394,135 @@ export default function PrintLogs() {
         </h2>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <select
-              className="user-filter-select"
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '180px', fontSize: '14px', cursor: 'pointer' }}
-            >
-              <option value="" hidden>{t('common.all')}</option>
-              {users
-                .sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""))
-                .map(u => (
-                  <option key={u.id} value={u.id}>{u.fullName}</option>
-                ))}
-            </select>
-            {selectedUser && (
-              <button
-                onClick={() => setSelectedUser("")}
-                className="icon-btn"
-                title={t('common.all')}
-                style={{ padding: '8px', color: '#666', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <i className="bi bi-x-lg" style={{ fontSize: '14px' }}></i>
-              </button>
-            )}
-
-            <select
-              className="status-filter-select"
-              value={selectedStatus}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedStatus(val);
-                if (val) searchParams.set("status", val);
-                else searchParams.delete("status");
-                setSearchParams(searchParams);
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }} ref={filterMenuRef}>
+            <button
+              onClick={() => setShowFilterMenu(!showFilterMenu)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                border: '1.5px solid #3f51b5',
+                backgroundColor: 'white',
+                color: '#3f51b5',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '14px'
               }}
-              style={{ padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '150px', fontSize: '14px', cursor: 'pointer' }}
             >
-              <option value="">{t('common.allStatuses') || "All Statuses"}</option>
-              {["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"].map(s => (
-                <option key={s} value={s}>{getStatusTranslation(s)}</option>
-              ))}
-            </select>
-            {selectedStatus && (
-              <button
-                onClick={() => {
-                  setSelectedStatus("");
-                  searchParams.delete("status");
-                  setSearchParams(searchParams);
+              <FaFilter />
+              {t('common.filter')}
+            </button>
+
+            {showFilterMenu && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: '8px',
+                  background: 'white',
+                  border: '1.5px solid #3f51b5',
+                  borderRadius: '6px',
+                  padding: '16px',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                  zIndex: 50,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px',
+                  minWidth: '240px'
                 }}
-                className="icon-btn"
-                title={t('common.all')}
-                style={{ padding: '8px', color: '#666', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                <i className="bi bi-x-lg" style={{ fontSize: '14px' }}></i>
-              </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#000000', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
+                    {t('common.user') || 'User'}
+                  </label>
+                  <select
+                    className="user-filter-select"
+                    value={selectedUser}
+                    onChange={(e) => setSelectedUser(e.target.value)}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      border: '1.5px solid #3f51b5',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                      backgroundColor: '#ffffff',
+                      color: '#000000',
+                      width: '100%'
+                    }}
+                  >
+                    <option value="" hidden>{t('common.allUsers')}</option>
+                    {users
+                      .sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""))
+                      .map(u => (
+                        <option key={u.id} value={u.id}>{u.fullName}</option>
+                      ))}
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#000000', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
+                    {t('common.status') || 'Status'}
+                  </label>
+                  <select
+                    className="status-filter-select"
+                    value={selectedStatus}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedStatus(val);
+                      if (val) searchParams.set("status", val);
+                      else searchParams.delete("status");
+                      setSearchParams(searchParams);
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      border: '1.5px solid #3f51b5',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                      backgroundColor: '#ffffff',
+                      color: '#000000',
+                      width: '100%'
+                    }}
+                  >
+                    <option value="">{t('common.allStatuses') || "All Statuses"}</option>
+                    {["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"].map(s => (
+                      <option key={s} value={s}>{getStatusTranslation(s)}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {(selectedUser || selectedStatus) && (
+                  <button
+                    onClick={() => {
+                      setSelectedUser("");
+                      setSelectedStatus("");
+                      searchParams.delete("status");
+                      setSearchParams(searchParams);
+                    }}
+                    style={{
+                      marginTop: '4px',
+                      padding: '10px',
+                      background: '#3f51b5',
+                      border: '1px solid #3f51b5',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseOver={(e) => e.target.style.opacity = '0.9'}
+                    onMouseOut={(e) => e.target.style.opacity = '1'}
+                  >
+                    {t('common.resetFilters')}
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -440,14 +556,8 @@ export default function PrintLogs() {
       )}
 
       <div className="kanban-board">
-        {["Pending", "Meetings", "In Progress", "Testing", "Completed", "Paused"].map((columnStatus) => {
-          const columnJobs = filteredJobs.filter((job) => {
-            if (columnStatus === "Pending") return job.status === "Pending" || job.status === "Waiting";
-            if (columnStatus === "In Progress") return job.status === "In Progress" || job.status === "Preparing" || job.status === "Printing" || job.status === "Post-Processing";
-            if (columnStatus === "Completed") return job.status === "Completed" || job.status === "Done";
-            if (columnStatus === "Paused") return job.status === "Paused" || job.status === "Failed";
-            return job.status === columnStatus;
-          });
+        {visibleColumns.map((columnStatus) => {
+          const columnJobs = filteredJobs.filter((job) => isJobInStatusCategory(job, columnStatus));
 
           return (
             <div
@@ -472,31 +582,29 @@ export default function PrintLogs() {
                     onDragStart={(e) => handleDragStart(e, job.id)}
                     onClick={() => openDetails(job.id)}
                   >
-                    <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <span className="job-name">{job.jobName}</span>
-                      <div className="card-actions" style={{ display: 'flex', gap: '4px', minWidth: '50px', justifyContent: 'flex-end' }}>
-                        <button onClick={(e) => { e.stopPropagation(); openEditModal(job); }} className="icon-btn edit">
-                          <FaEdit />
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); showDeleteConfirm(job.id); }} className="icon-btn delete">
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="card-body">
+                    <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                      <span className="job-name" title={job.jobName}>{job.jobName}</span>
                       {job.filamentName && (
                         <div className="card-tag">
                           {job.filamentName}
                         </div>
                       )}
-
+                    </div>
+                    <div className="card-body">
                       <div className="card-footer">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <span className="card-date">{formatDate(job.createdAt)}</span>
-                          <span style={{ fontSize: '10px', color: '#666', fontWeight: 600 }}>{job.userFullName}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div className="user-avatar-mini" title={job.userFullName}>
+                            {job.userFullName ? job.userFullName.charAt(0).toUpperCase() : '?'}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                            <span style={{ fontSize: '10px', color: '#666', fontWeight: 600 }}>{job.userFullName}</span>
+                            <span className="card-date">{formatDate(job.createdAt)}</span>
+                          </div>
                         </div>
-                        <div className="user-avatar-mini" title={job.userFullName}>
-                          {job.userFullName ? job.userFullName.split(' ').map(n => n[0]).join('').toUpperCase() : '?'}
+                        <div className="card-actions" style={{ display: 'flex', gap: '4px' }}>
+                          <button onClick={(e) => { e.stopPropagation(); showDeleteConfirm(job.id); }} className="icon-btn delete">
+                            <FaTrash />
+                          </button>
                         </div>
                       </div>
                     </div>

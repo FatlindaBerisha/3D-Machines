@@ -231,27 +231,24 @@
         "german": "German"
     },
     "common": {
+        "all": "All",
         "add": "Add",
         "save": "Save",
         "cancel": "Cancel",
         "edit": "Edit",
         "delete": "Delete",
-        "search": "Search",
         "filter": "Filter",
-        "export": "Export",
-        "import": "Import",
-        "loading": "Loading...",
-        "error": "Error",
-        "success": "Success",
-        "warning": "Warning",
-        "all": "All",
+        "resetFilters": "Reset Filters",
+        "allStatuses": "All Statuses",
+        "allUsers": "All Users",
+        "user": "User",
+        "status": "Status",
         "info": "Info",
         "male": "Male",
         "female": "Female",
         "student": "Student",
         "engineer": "Engineer",
         "designer": "Designer",
-        "user": "User",
         "unknown": "Unknown",
         "pending": "Pending",
         "inProgress": "In Progress",
@@ -263,6 +260,25 @@
         "printing": "Printing",
         "postProcessing": "Post-Processing",
         "failed": "Failed"
+    },
+    "task": {
+        "createdOn": "Created on",
+        "owner": "Owner",
+        "assignee": "Assignee",
+        "created": "Created",
+        "stage": "Stage",
+        "participants": "Participants",
+        "job": "Task",
+        "add": "Add",
+        "selectUser": "Select User",
+        "start": "Start",
+        "pause": "Pause",
+        "complete": "Complete",
+        "resume": "Resume",
+        "completedAt": "Completed at",
+        "chat": "Task Chat",
+        "members": "members",
+        "removeParticipantConfirm": "Are you sure you want to remove this participant?"
     },
     "printWorkflow": {
         "statuses": {
@@ -412,6 +428,7 @@
         "fillRequiredFields": "Please complete all required fields.",
         "registrationSuccess": "Registration successful! Please check your email to verify your account.",
         "registrationFailed": "Registration failed.",
+        "printPhaseUpdated": "Print Phase updated",
         "emailAlreadyInUse": "Email already in use.",
         "emailVerifiedSuccess": "Email verified successfully.",
         "verificationProcessing": "Processing your verification, please wait...",
@@ -444,7 +461,9 @@
         "passwordUpdated": "Password updated!",
         "accountDeleted": "Account deleted.",
         "genericUpdateFailed": "Update failed",
-        "loadProfileFailed": "Failed to load profile"
+        "loadProfileFailed": "Failed to load profile",
+        "participantAdded": "Participant added",
+        "participantRemoved": "Participant removed"
     },
     "verifyEmail": {
         "title": "Verify Your Email",
@@ -502,7 +521,20 @@
         "newUserRegistered": "New User Registered",
         "newUserDesc": "Receive alerts when a new user joins the system",
         "markAllRead": "Mark all as read",
-        "noNotifications": "No notifications"
+        "noNotifications": "No notifications",
+        "owner_job_msg": "{{type}} Job '{{jobName}}' was {{action}}.",
+        "admin_job_msg": "{{userName}} {{action}} {{type}} job '{{jobName}}'.",
+        "actions": {
+            "created": "created",
+            "updated": "updated",
+            "started": "started",
+            "paused": "paused",
+            "finished": "finished"
+        },
+        "types": {
+            "print": "Print",
+            "cut": "Cut"
+        }
     },
     "terms": {
         "title": "Terms of Service",
@@ -604,11 +636,20 @@
         "taskPaused": "paused the task.",
         "taskResumed": "resumed the task.",
         "taskCompleted": "completed the task.",
-        "taskRecut": "requested recut."
+        "taskRecut": "requested recut.",
+        "statusChanged": "changed status to"
     },
     "chat": {
         "title": "MechBot",
         "clearHistory": "Clear history",
+        "startCall": "Start Video Call",
+        "incomingCall": "Incoming Call",
+        "callInvitation": "{{senderName}} wants to talk about \"{{jobName}}\"",
+        "isCalling": "{{name}} is calling you",
+        "accept": "Accept",
+        "decline": "Decline",
+        "selectParticipant": "Select Participant",
+        "call": "Call",
         "welcomeMessage": "Hi! I'm MechBot. How can I help you regarding 3D Machines today?",
         "placeholder": "Ask me anything...",
         "connectionError": "Sorry, I'm having trouble connecting to the service.",
@@ -667,6 +708,28 @@
                     "question": "Is it free?"
                 }
             }
+        }
+    },
+    "webRTC": {
+        "status": {
+            "connecting": "Connecting…",
+            "connected": "Connected",
+            "ice": "ICE: {{status}}"
+        },
+        "overlays": {
+            "incoming": "INCOMING CALL",
+            "calling": "CALLING…",
+            "cameraDisabled": "{{name}} HAS DISABLED CAMERA",
+            "incomingVideoCall": "Incoming Video Call",
+            "outgoingVideoCall": "Outgoing Video Call",
+            "you": "YOU"
+        },
+        "controls": {
+            "mute": "Mute",
+            "unmute": "Unmute",
+            "camera": "Camera",
+            "noCamera": "No Cam",
+            "endCall": "End Call"
         }
     },
     "notFound": {

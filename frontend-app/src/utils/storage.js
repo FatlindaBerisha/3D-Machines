@@ -29,22 +29,21 @@ export function setAuth({ token, refreshToken, user } = {}, remember = true) {
   }
 }
 
-export function clearAuth() {
-  try { localStorage.removeItem('jwtToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('user'); } catch { }
-  try { sessionStorage.removeItem('jwtToken'); sessionStorage.removeItem('refreshToken'); sessionStorage.removeItem('user'); } catch { }
-}
-
-export function removeAuth() {
-  clearAuth();
-}
-
 export function getUser() {
+  const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
+  if (!userStr) return null;
   try {
-    const user = localStorage.getItem('user') || sessionStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    return JSON.parse(userStr);
   } catch (e) {
     return null;
   }
 }
 
-export default { getToken, getRefreshToken, setAuth, clearAuth, removeAuth, getUser };
+export function clearAuth() {
+  try { localStorage.removeItem('jwtToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('user'); } catch { }
+  try { sessionStorage.removeItem('jwtToken'); sessionStorage.removeItem('refreshToken'); sessionStorage.removeItem('user'); } catch { }
+}
+
+export const removeAuth = clearAuth;
+
+export default { getToken, getRefreshToken, setAuth, clearAuth, getUser, removeAuth };

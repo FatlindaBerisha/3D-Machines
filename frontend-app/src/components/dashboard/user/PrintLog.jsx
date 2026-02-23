@@ -9,6 +9,7 @@ import PrintJobDetailsModal from "./PrintJobDetailsModal";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import api from "../../../utils/axiosClient";
+import Preloader from "../../common/Preloader";
 import "../../styles/PrintLog.css";
 
 export default function PrintLog() {
@@ -23,6 +24,7 @@ export default function PrintLog() {
     duration: "",
     description: "",
   });
+  const [loading, setLoading] = useState(true);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -59,6 +61,7 @@ export default function PrintLog() {
   // FETCH DATA (axios)
   // -------------------------------------------------------
   async function fetchData() {
+    setLoading(true);
     try {
       const [resJobs, resFilaments] = await Promise.all([
         api.get("/printjob/my"),
@@ -69,6 +72,8 @@ export default function PrintLog() {
       setPrintJobs(mergeJobsWithFilamentNames(resJobs.data, resFilaments.data));
     } catch (err) {
       toast.error(err?.response?.data?.message || t('toasts.printJobUpdateFailed'));
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -355,6 +360,8 @@ export default function PrintLog() {
     });
   }
 
+  if (loading) return <Preloader />;
+
   // -------------------------------------------------------
   // UI
   // -------------------------------------------------------
@@ -458,21 +465,34 @@ export default function PrintLog() {
                     onDragStart={(e) => handleDragStart(e, job.id)}
                     onClick={() => openDetails(job.id)}
                   >
-                    <div className="card-header">
-                      <span className="job-name">{job.jobName}</span>
-                    </div>
-                    <div className="card-body">
+                    <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                      <span className="job-name" title={job.jobName}>{job.jobName}</span>
                       {job.filamentName && (
                         <div className="card-tag">
                           {job.filamentName}
                         </div>
                       )}
-
+                    </div>
+                    <div className="card-body">
                       <div className="card-footer">
-                        <span className="card-date">{formatDate(job.createdAt)}</span>
-                        <div className="user-avatar-mini" title={job.user?.fullName}>
-                          {job.user?.fullName ? job.user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : '?'}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div className="user-avatar-mini" title={job.user?.fullName}>
+                            {job.user?.fullName ? job.user.fullName.charAt(0).toUpperCase() : '?'}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                            <span style={{ fontSize: '10px', color: '#666', fontWeight: 600 }}>{job.user?.fullName}</span>
+                            <span className="card-date">{formatDate(job.createdAt)}</span>
+                          </div>
                         </div>
+
+                        {/* Only show edit/delete if status is Pending (or if user is owner and allowed via logic, but keeping simple for now based on previous code) */}
+                        {job.status === "Pending" && (
+                          <div className="card-actions" style={{ display: 'flex', gap: '4px' }}>
+                            <button onClick={(e) => { e.stopPropagation(); showDeleteConfirm(job.id); }} className="icon-btn delete">
+                              <FaTrash />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

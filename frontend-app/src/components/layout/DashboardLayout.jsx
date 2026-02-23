@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { getUser } from "../../utils/storage";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import GlobalCallReceiver from "../GlobalCallReceiver";
 import "../styles/Layout.css";
 
 export default function DashboardLayout() {
@@ -36,6 +37,7 @@ export default function DashboardLayout() {
   return (
     <div className="dashboard-layout">
       <Topbar />
+      <GlobalCallReceiver />
       <aside>
         <Sidebar role={role} />
       </aside>

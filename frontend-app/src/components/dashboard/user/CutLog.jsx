@@ -10,6 +10,7 @@ import CutJobDetailsModal from "./CutJobDetailsModal";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import api from "../../../utils/axiosClient";
+import Preloader from "../../common/Preloader";
 import "../../styles/PrintLog.css";
 
 export default function UserCutLog() {
@@ -24,6 +25,7 @@ export default function UserCutLog() {
         duration: "",
         description: "",
     });
+    const [loading, setLoading] = useState(true);
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -58,6 +60,7 @@ export default function UserCutLog() {
     // FETCH DATA (axios)
     // -------------------------------------------------------
     async function fetchData() {
+        setLoading(true);
         try {
             const [resJobs, resMaterials] = await Promise.all([
                 api.get("/cutjob/my"),
@@ -68,6 +71,8 @@ export default function UserCutLog() {
             setCutJobs(mergeJobsWithMaterialNames(resJobs.data, resMaterials.data));
         } catch (err) {
             toast.error(err?.response?.data?.message || t('toasts.loadDataFailed'));
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -295,7 +300,7 @@ export default function UserCutLog() {
         return new Date(dateStr).toLocaleDateString(locale, {
             day: "2-digit",
             month: "short",
-            year: "numeric",
+            year: "numeric"
         });
     }
 
@@ -343,6 +348,8 @@ export default function UserCutLog() {
             );
         });
     }
+
+    if (loading) return <Preloader />;
 
     // -------------------------------------------------------
     // UI
@@ -447,21 +454,34 @@ export default function UserCutLog() {
                                         onDragStart={(e) => handleDragStart(e, job.id)}
                                         onClick={() => openDetails(job.id)}
                                     >
-                                        <div className="card-header">
+                                        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                                             <span className="job-name">{job.jobName}</span>
-                                        </div>
-                                        <div className="card-body">
                                             {job.materialName && (
                                                 <div className="card-tag">
                                                     {job.materialName}
                                                 </div>
                                             )}
-
+                                        </div>
+                                        <div className="card-body">
                                             <div className="card-footer">
-                                                <span className="card-date">{formatDate(job.createdAt)}</span>
-                                                <div className="user-avatar-mini" title={job.user?.fullName}>
-                                                    {job.user?.fullName ? job.user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : '?'}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <div className="user-avatar-mini" title={job.user?.fullName}>
+                                                        {job.user?.fullName ? job.user.fullName.charAt(0).toUpperCase() : '?'}
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                                                        <span style={{ fontSize: '10px', color: '#666', fontWeight: 600 }}>{job.user?.fullName}</span>
+                                                        <span className="card-date">{formatDate(job.createdAt)}</span>
+                                                    </div>
                                                 </div>
+
+                                                {/* Only show edit/delete if status is Pending */}
+                                                {job.status === "Pending" && (
+                                                    <div className="card-actions" style={{ display: 'flex', gap: '4px' }}>
+                                                        <button onClick={(e) => { e.stopPropagation(); showDeleteConfirm(job.id); }} className="icon-btn delete">
+                                                            <FaTrash />
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

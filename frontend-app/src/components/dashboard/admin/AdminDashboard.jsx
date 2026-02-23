@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../utils/axiosClient';
+import Preloader from '../../common/Preloader';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -148,7 +149,7 @@ const AdminDashboard = () => {
         </div>
     );
 
-    if (loading) return <div className="admin-dashboard-container">{t('common.loading')}</div>;
+    if (loading) return <Preloader />;
 
     const filteredPrintData = stats.printStatusData.filter(d => !hiddenSectors.prints.includes(d.name));
     const filteredCutData = stats.cutStatusData.filter(d => !hiddenSectors.cuts.includes(d.name));

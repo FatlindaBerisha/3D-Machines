@@ -3,8 +3,10 @@ import { getConnection, createConnection } from "./signalRConnection";
 import { logout } from "./auth";
 import { getToken, getRefreshToken, setAuth } from "./storage";
 
+import { API_BASE_URL } from "../config";
+
 const api = axios.create({
-  baseURL: "http://localhost:5151/api",
+  baseURL: API_BASE_URL,
   withCredentials: false,
 });
 
@@ -111,7 +113,7 @@ api.interceptors.response.use(
           else console.log('No valid access token present to check expiry');
         } catch (e) { }
 
-        const res = await axios.post("http://localhost:5151/api/auth/refresh-token", {
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
           refreshToken
         });
 
@@ -161,7 +163,7 @@ api.interceptors.response.use(
           console.log("Detected rotated refresh token in storage, retrying refresh with new token...");
           originalRequest._retry2 = true;
           try {
-            const res2 = await axios.post("http://localhost:5151/api/auth/refresh-token", {
+            const res2 = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
               refreshToken: currentRefresh
             });
 

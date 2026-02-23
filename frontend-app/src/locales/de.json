@@ -231,27 +231,24 @@
         "german": "Deutsch"
     },
     "common": {
+        "all": "Alle",
         "add": "Hinzufügen",
         "save": "Speichern",
         "cancel": "Abbrechen",
         "edit": "Bearbeiten",
         "delete": "Löschen",
-        "search": "Suchen",
-        "filter": "Filtern",
-        "export": "Exportieren",
-        "import": "Importieren",
-        "loading": "Lädt...",
-        "error": "Fehler",
-        "success": "Erfolg",
-        "warning": "Warnung",
-        "all": "Alle",
+        "filter": "Filter",
+        "resetFilters": "Filter zurücksetzen",
+        "allStatuses": "Alle Status",
+        "allUsers": "Alle Benutzer",
+        "user": "Benutzer",
+        "status": "Status",
         "info": "Info",
         "male": "Männlich",
         "female": "Weiblich",
         "student": "Student",
         "engineer": "Ingenieur",
         "designer": "Designer",
-        "user": "Benutzer",
         "unknown": "Unbekannt",
         "pending": "Ausstehend",
         "inProgress": "In Bearbeitung",
@@ -263,6 +260,24 @@
         "printing": "Drucken",
         "postProcessing": "Nachbearbeitung",
         "failed": "Fehlgeschlagen"
+    },
+    "task": {
+        "createdOn": "Erstellt am",
+        "owner": "Besitzer",
+        "assignee": "Beauftragter",
+        "created": "Erstellt",
+        "stage": "Phase",
+        "participants": "Teilnehmer",
+        "add": "Hinzufügen",
+        "selectUser": "Benutzer auswählen",
+        "start": "Starten",
+        "pause": "Pausieren",
+        "complete": "Abschließen",
+        "resume": "Fortsetzen",
+        "completedAt": "Abgeschlossen um",
+        "chat": "Aufgaben-Chat",
+        "members": "Mitglieder",
+        "removeParticipantConfirm": "Sind Sie sicher, dass Sie diesen Teilnehmer entfernen möchten?"
     },
     "printWorkflow": {
         "statuses": {
@@ -408,6 +423,7 @@
         "fillRequiredFields": "Bitte füllen Sie alle erforderlichen Felder aus.",
         "registrationSuccess": "Registrierung erfolgreich! Bitte überprüfen Sie Ihre E-Mail, um Ihr Konto zu verifizieren.",
         "registrationFailed": "Registrierung fehlgeschlagen.",
+        "printPhaseUpdated": "Druckphase aktualisiert",
         "emailAlreadyInUse": "E-Mail wird bereits verwendet.",
         "emailVerifiedSuccess": "E-Mail erfolgreich verifiziert.",
         "verificationProcessing": "Verifizierung wird verarbeitet, bitte warten...",
@@ -441,7 +457,9 @@
         "passwordUpdated": "Passwort aktualisiert!",
         "accountDeleted": "Konto gelöscht.",
         "genericUpdateFailed": "Aktualisierung fehlgeschlagen",
-        "loadProfileFailed": "Profil konnte nicht geladen werden"
+        "loadProfileFailed": "Profil konnte nicht geladen werden",
+        "participantAdded": "Teilnehmer hinzugefügt",
+        "participantRemoved": "Teilnehmer entfernt"
     },
     "verifyEmail": {
         "title": "E-Mail verifizieren",
@@ -493,7 +511,20 @@
         "newUserRegistered": "Neuer Benutzer registriert",
         "newUserDesc": "Erhalten Sie Benachrichtigungen, wenn ein neuer Benutzer dem System beitritt",
         "markAllRead": "Alle als gelesen markieren",
-        "noNotifications": "Keine Benachrichtigungen"
+        "noNotifications": "Keine Benachrichtigungen",
+        "owner_job_msg": "{{type}} Auftrag '{{jobName}}' wurde {{action}}.",
+        "admin_job_msg": "{{userName}} hat den {{type}} Auftrag '{{jobName}}' {{action}}.",
+        "actions": {
+            "created": "erstellt",
+            "updated": "aktualisiert",
+            "started": "gestartet",
+            "paused": "pausiert",
+            "finished": "beendet"
+        },
+        "types": {
+            "print": "Druck",
+            "cut": "Schnitt"
+        }
     },
     "terms": {
         "title": "Nutzungsbedingungen",
@@ -596,11 +627,15 @@
         "taskPaused": "hat die Aufgabe pausiert.",
         "taskResumed": "hat die Aufgabe fortgesetzt.",
         "taskCompleted": "hat die Aufgabe abgeschlossen.",
-        "taskRecut": "hat Nachschnitt angefordert."
+        "taskRecut": "hat Nachschnitt angefordert.",
+        "statusChanged": "hat den Status geändert auf"
     },
     "chat": {
         "title": "MechBot",
         "clearHistory": "Verlauf löschen",
+        "startCall": "Videoanruf starten",
+        "incomingCall": "Eingehender Anruf",
+        "callInvitation": "{{senderName}} möchte über \"{{jobName}}\" sprechen",
         "welcomeMessage": "Hallo! Ich bin MechBot. Wie kann ich Ihnen heute bezüglich 3D Machines helfen?",
         "placeholder": "Frag mich was...",
         "connectionError": "Entschuldigung, ich habe gerade Verbindungsprobleme.",
@@ -659,6 +694,28 @@
                     "question": "Ist es kostenlos?"
                 }
             }
+        }
+    },
+    "webRTC": {
+        "status": {
+            "connecting": "Verbinden…",
+            "connected": "Verbunden",
+            "ice": "ICE: {{status}}"
+        },
+        "overlays": {
+            "incoming": "EINGEHENDER ANRUF",
+            "calling": "RUFEN…",
+            "cameraDisabled": "{{name}} HAT DIE KAMERA DEAKTIVIERT",
+            "incomingVideoCall": "Eingehender Videoanruf",
+            "outgoingVideoCall": "Ausgehender Videoanruf",
+            "you": "DU"
+        },
+        "controls": {
+            "mute": "Stumm",
+            "unmute": "Laut",
+            "camera": "Kamera",
+            "noCamera": "Keine Cam",
+            "endCall": "Beenden"
         }
     },
     "notFound": {

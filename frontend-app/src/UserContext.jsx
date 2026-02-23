@@ -3,34 +3,30 @@ import React, { createContext, useState, useEffect } from 'react';
 export const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('user') || sessionStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
 
+  const [token, setToken] = useState(() =>
+    localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken') || null
+  );
+
+  // Sync to storage when state change
   useEffect(() => {
-    const savedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
-    const savedToken = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
-
-    if (savedUser) {
-      try { setUser(JSON.parse(savedUser)); } catch { }
+    if (user) {
+      const store = localStorage.getItem('user') ? localStorage : sessionStorage;
+      store.setItem('user', JSON.stringify(user));
     }
-    if (savedToken) setToken(savedToken);
-  }, []);
-
-  const syncToStorage = (key, value, isObject = false) => {
-    const sValue = isObject ? JSON.stringify(value) : value;
-    if (localStorage.getItem(key)) {
-      localStorage.setItem(key, sValue);
-    } else if (sessionStorage.getItem(key)) {
-      sessionStorage.setItem(key, sValue);
-    }
-  };
-
-  useEffect(() => {
-    if (user) syncToStorage('user', user, true);
   }, [user]);
 
   useEffect(() => {
-    if (token) syncToStorage('jwtToken', token);
+    if (token) {
+      const store = localStorage.getItem('jwtToken') ? localStorage : sessionStorage;
+      store.setItem('jwtToken', token);
+    }
   }, [token]);
 
   return (
