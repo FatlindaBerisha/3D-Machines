@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../config';
+import { removeAuth } from './storage';
 
 export async function logout({ revoke = true } = {}) {
   try {

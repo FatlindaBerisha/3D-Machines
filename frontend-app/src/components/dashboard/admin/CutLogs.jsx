@@ -10,7 +10,7 @@ import CutJobDetailsModal from "../user/CutJobDetailsModal";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import api from "../../../utils/axiosClient";
-import Preloader from "../../common/Preloader";
+// Preloader import removed
 import "../../styles/PrintLog.css";
 
 export default function AdminCutLogs() {
@@ -384,7 +384,8 @@ export default function AdminCutLogs() {
         });
     }
 
-    if (loading) return <Preloader />;
+    // Preloader removed per user request
+    // if (loading) return <Preloader />;
 
     // UI
     return (

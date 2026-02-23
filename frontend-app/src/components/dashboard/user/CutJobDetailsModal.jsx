@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { getToken } from "../../../utils/storage";
 import api from "../../../utils/axiosClient";
-import Preloader from "../../common/Preloader";
+// Preloader import removed
 import "../../styles/PrintLog.css"; // Reusing same styles for identical look
 import { MdClose, MdSend, MdAttachFile, MdInsertEmoticon, MdCall, MdSearch, MdCheck, MdPushPin, MdWarning, MdLabel, MdSettings, MdAdd } from "react-icons/md";
 import { IoPencil, IoTrash } from "react-icons/io5";
@@ -319,13 +319,7 @@ export default function CutJobDetailsModal({ jobId, onClose, onUpdate }) {
 
 
 
-    if (loading || !job) return (
-        <div className="modal-overlay" onClick={onClose} style={{ zIndex: 11000 }}>
-            <div className="modal-content details-modal" onClick={(e) => e.stopPropagation()} style={{ minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Preloader />
-            </div>
-        </div>
-    );
+    if (loading || !job) return null;
     const isOwner = Number(loggedInUserId) === Number(job.userId);
 
     return (

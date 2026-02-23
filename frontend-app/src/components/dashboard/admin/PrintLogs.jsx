@@ -9,7 +9,7 @@ import PrintJobDetailsModal from "../user/PrintJobDetailsModal";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import api from "../../../utils/axiosClient";
-import Preloader from "../../common/Preloader";
+// Preloader import removed
 import "../../styles/PrintLog.css";
 
 export default function PrintLogs() {
@@ -383,7 +383,8 @@ export default function PrintLogs() {
     });
   }
 
-  if (loading) return <Preloader />;
+  // Preloader removed per user request
+  // if (loading) return <Preloader />;
 
   // UI
   return (
