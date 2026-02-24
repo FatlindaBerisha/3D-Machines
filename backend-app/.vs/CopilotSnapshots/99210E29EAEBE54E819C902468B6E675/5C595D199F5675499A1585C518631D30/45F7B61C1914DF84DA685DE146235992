@@ -1,0 +1,14 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace backend_app.Models
+{
+    public class Print
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public DateTime PrintDate { get; set; }
+        public int Duration { get; set; }
+        public string? Status { get; set; }
+        public int FilamentId { get; set; }
+    }
+}

@@ -6,7 +6,7 @@ import api from "../../../utils/axiosClient";
 import "../../styles/PrintLog.css";
 import { MdClose, MdSend, MdAttachFile, MdInsertEmoticon, MdCall, MdSearch, MdCheck, MdPushPin, MdWarning, MdLabel, MdSettings, MdAdd } from "react-icons/md";
 import { IoPencil, IoTrash } from "react-icons/io5";
-import { HiClock, HiCog, HiPrinter, HiSparkles, HiCheckCircle, HiExclamationCircle, HiPhone } from "react-icons/hi2";
+import { HiClock, HiCog, HiPrinter, HiSparkles, HiCheckCircle, HiExclamationCircle, HiPhone, HiPencilSquare, HiTrash } from "react-icons/hi2";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import classNames from 'classnames';
@@ -43,9 +43,20 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
     const [printPhase, setPrintPhase] = useState("Preparing");
     const [chatSearchQuery, setChatSearchQuery] = useState("");
     const [isChatSearchOpen, setIsChatSearchOpen] = useState(false);
+    const [isEditingMainInfo, setIsEditingMainInfo] = useState(false);
+    const [editedJobName, setEditedJobName] = useState("");
 
 
     // Auto-scroll chat
+    const renderHighlightedText = (text, highlight) => {
+        if (!highlight || !highlight.trim()) return text;
+        const parts = text.split(new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+        return parts.map((part, i) =>
+            part.toLowerCase() === highlight.toLowerCase() ?
+                <span key={i} style={{ backgroundColor: '#fde047', color: '#000', borderRadius: '2px', padding: '0 2px' }}>{part}</span> : part
+        );
+    };
+
     const chatEndRef = useRef(null);
 
     useEffect(() => {
@@ -77,6 +88,7 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
         try {
             const res = await api.get(`/printjob/${jobId}`);
             setJob(res.data);
+            setEditedJobName(res.data.jobName || "");
             setEditedDescription(res.data.description || "");
             setPrintSettings({
                 printer: res.data.printer || "",
@@ -222,26 +234,31 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
         const conn = getConnection();
         if (!conn) return;
 
-        const handleCallInvitation = (senderId, offer) => {
-            console.log("[SignalR] Incoming call from:", senderId);
-            console.log("[SignalR] Current job state:", job);
-            console.log("[SignalR] Logged in user ID:", loggedInUserId);
+        const handleCallInvitation = (senderId, offer, jobIdParam, jobTypeParam, senderNameParam, jobNameParam) => {
+            console.log("[SignalR] Incoming call from:", senderId, "for job:", jobNameParam);
 
-            // Check if sender is creator or participant of this job
+            // Auto-accept if this modal is for the same job, or if sender is part of this job
+            const isSameJob = jobId == jobIdParam;
             const isCreator = job?.userId == senderId;
             const isParticipant = job?.participants?.some(p => p.userId == senderId);
 
-            console.log("[SignalR] Permission check - isCreator:", isCreator, "isParticipant:", isParticipant);
-
-            if (isCreator || isParticipant) {
-                console.log("[SignalR] Call invitation accepted for display");
-                setCallData({ targetUserId: senderId, senderUserId: loggedInUserId, isIncoming: true, offer });
-            } else {
-                console.log("[SignalR] Call filtered out - user not recognized as part of this job");
+            if (isSameJob || isCreator || isParticipant) {
+                setCallData({
+                    targetUserId: senderId,
+                    senderUserId: loggedInUserId,
+                    isIncoming: true,
+                    offer,
+                    jobId: jobIdParam,
+                    jobName: jobNameParam,
+                    senderName: senderNameParam
+                });
             }
         };
 
-        return () => { };
+        conn.on("CallInvitation", handleCallInvitation);
+        return () => {
+            conn.off("CallInvitation", handleCallInvitation);
+        };
     }, [job, loggedInUserId]);
 
     async function handleEditComment(commentId) {
@@ -264,21 +281,21 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
         } catch (err) { toast.error("Failed to delete comment"); }
     }
 
-    async function handleUpdateDescription() {
+    async function handleUpdateMainInfo() {
         try {
             await api.put(`/printjob/${jobId}`, {
                 id: jobId,
-                jobName: job.jobName,
+                jobName: editedJobName,
                 filamentId: job.filamentId,
                 status: job.status,
                 duration: job.duration,
                 description: editedDescription
             });
-            setIsEditingDescription(false);
+            setIsEditingMainInfo(false);
             fetchJobDetails();
             onUpdate();
-            toast.success("Description updated");
-        } catch (err) { toast.error("Failed to update description"); }
+            toast.success("Job updated");
+        } catch (err) { toast.error("Failed to update job"); }
     }
 
     async function handleUpdatePrintSettings() {
@@ -351,9 +368,89 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
             <div className="details-modal-split" onClick={(e) => e.stopPropagation()}>
                 {/* LEFT PANEL: DETAILS */}
                 <div className="details-left-panel">
-                    <div className="details-left-header">
-                        <h2>{job.jobName}</h2>
-                        <p>{job.filament?.name || t('filaments.noFilament')} • {t('task.createdOn')} {new Date(job.createdAt).toLocaleDateString()}</p>
+                    <div className="details-left-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #e2e8f0', paddingBottom: '15px', marginBottom: '15px' }}>
+                        <div style={{ flex: 1 }}>
+                            {isEditingMainInfo ? (
+                                <input
+                                    value={editedJobName}
+                                    onChange={(e) => setEditedJobName(e.target.value)}
+                                    style={{
+                                        fontSize: '24px',
+                                        fontWeight: 'bold',
+                                        width: '100%',
+                                        marginBottom: '5px',
+                                        padding: '2px 8px',
+                                        borderRadius: '8px',
+                                        border: '1px solid transparent',
+                                        background: 'transparent',
+                                        marginLeft: '-8px',
+                                        outline: 'none',
+                                        transition: 'all 0.2s',
+                                        color: '#1e293b'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.background = '#f1f5f9'}
+                                    onMouseLeave={(e) => { if (document.activeElement !== e.target) e.target.style.background = 'transparent'; }}
+                                    onFocus={(e) => { e.target.style.background = 'white'; e.target.style.borderColor = '#3b82f6'; e.target.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.1)'; }}
+                                    onBlur={(e) => { e.target.style.background = 'transparent'; e.target.style.borderColor = 'transparent'; e.target.style.boxShadow = 'none'; }}
+                                    autoFocus
+                                />
+                            ) : (
+                                <h2 style={{ margin: 0 }}>{job.jobName}</h2>
+                            )}
+                            <p style={{ margin: '5px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                                {job.filament?.name || t('filaments.noFilament')} • {t('task.createdOn')} {new Date(job.createdAt).toLocaleDateString()}
+                            </p>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            {/* Action Buttons in Header */}
+                            {isOwner && (
+                                <div className="header-action-group" style={{ display: 'flex', gap: '5px', background: '#f1f5f9', padding: '4px', borderRadius: '12px' }}>
+                                    {job.status === "Pending" && (
+                                        <button className="header-btn start" onClick={handleStart} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                            {t('task.start')}
+                                        </button>
+                                    )}
+                                    {job.status === "In Progress" && (
+                                        <>
+                                            <button className="header-btn pause" onClick={handlePause} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                                {t('task.pause')}
+                                            </button>
+                                            <button className="header-btn finish" onClick={handleFinish} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                                {t('task.complete')}
+                                            </button>
+                                        </>
+                                    )}
+                                    {job.status === "Paused" && (
+                                        <>
+                                            <button className="header-btn start" onClick={handleStart} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                                {t('task.resume')}
+                                            </button>
+                                            <button className="header-btn finish" onClick={handleFinish} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                                                {t('task.complete')}
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Header Edit Button */}
+                            {isOwner && (
+                                <div
+                                    className="header-edit-toggle"
+                                    onClick={() => isEditingMainInfo ? handleUpdateMainInfo() : setIsEditingMainInfo(true)}
+                                    style={{
+                                        width: '36px', height: '36px', borderRadius: '10px',
+                                        background: isEditingMainInfo ? '#dcfce7' : '#f1f5f9',
+                                        color: isEditingMainInfo ? '#166534' : '#64748b',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer', transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {isEditingMainInfo ? <MdCheck size={20} /> : <HiPencilSquare size={20} />}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* OWNER CHECK FOR EDITING */}
@@ -362,40 +459,33 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
 
                         return (
                             <>
-                                <div className="job-description-box" style={{ marginBottom: '20px', padding: '15px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', position: 'relative' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                                        <h4 style={{ margin: 0, fontSize: '13px', color: '#64748b', textTransform: 'uppercase' }}>{t('filaments.description')}</h4>
-                                        {isOwner && (
-                                            !isEditingDescription ? (
-                                                <IoPencil
-                                                    style={{ cursor: 'pointer', color: '#64748b' }}
-                                                    onClick={() => setIsEditingDescription(true)}
-                                                />
-                                            ) : (
-                                                <MdCheck
-                                                    style={{ cursor: 'pointer', color: '#48bb78', fontSize: '18px' }}
-                                                    onClick={handleUpdateDescription}
-                                                />
-                                            )
-                                        )}
+                                <div className="job-description-box" style={{ marginBottom: '20px', padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', position: 'relative' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <h4 style={{ margin: 0, fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('filaments.description')}</h4>
                                     </div>
-                                    {isEditingDescription ? (
+                                    {isEditingMainInfo ? (
                                         <textarea
                                             value={editedDescription}
                                             onChange={(e) => setEditedDescription(e.target.value)}
                                             style={{
                                                 width: '100%',
-                                                border: '1px solid #ddd',
-                                                borderRadius: '4px',
-                                                padding: '8px',
+                                                border: '1px solid #e2e8f0',
+                                                borderRadius: '10px',
+                                                padding: '12px',
                                                 fontSize: '14px',
+                                                lineHeight: '1.6',
                                                 fontFamily: 'inherit',
-                                                minHeight: '60px'
+                                                minHeight: '100px',
+                                                outline: 'none',
+                                                background: '#f8fafc',
+                                                transition: 'all 0.2s',
+                                                resize: 'vertical'
                                             }}
-                                            autoFocus
+                                            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; e.target.style.background = 'white'; e.target.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.1)'; }}
+                                            onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
                                         />
                                     ) : (
-                                        <p style={{ margin: 0, fontSize: '14px', whiteSpace: 'pre-wrap', color: job.description ? '#1e293b' : '#94a3b8', fontStyle: job.description ? 'normal' : 'italic' }}>
+                                        <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap', color: job.description ? '#334155' : '#94a3b8', fontStyle: job.description ? 'normal' : 'italic' }}>
                                             {job.description || "No description provided."}
                                         </p>
                                     )}
@@ -646,34 +736,6 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
 
 
 
-                    {/* ACTION BAR */}
-                    <div className="left-action-bar">
-                        {/* ONLY OWNER CAN START/STOP */}
-                        {isOwner && (
-                            <>
-                                {job.status === "Pending" && (
-                                    <button className="start-btn" onClick={handleStart}>{t('task.start')}</button>
-                                )}
-                                {job.status === "In Progress" && (
-                                    <>
-                                        <button className="pause-btn" onClick={handlePause}>{t('task.pause')}</button>
-                                        <button className="finish-btn" onClick={handleFinish}>{t('task.complete')}</button>
-                                    </>
-                                )}
-                                {job.status === "Paused" && (
-                                    <>
-                                        <button className="start-btn" onClick={handleStart}>{t('task.resume')}</button>
-                                        <button className="finish-btn" onClick={handleFinish}>{t('task.complete')}</button>
-                                    </>
-                                )}
-                            </>
-                        )}
-                        {job.status === "Completed" && (
-                            <div style={{ width: '100%', textAlign: 'center', color: '#48bb78', fontWeight: 'bold' }}>
-                                {t('task.completedAt')} {new Date(job.endTime).toLocaleTimeString()}
-                            </div>
-                        )}
-                    </div>
                 </div>
 
                 {/* RIGHT PANEL: CHAT */}
@@ -719,7 +781,7 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
                             })()}
 
                             {isChatSearchOpen ? (
-                                <div style={{ position: 'relative' }}>
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                     <input
                                         type="text"
                                         value={chatSearchQuery}
@@ -727,33 +789,36 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
                                         placeholder={t('common.search')}
                                         autoFocus
                                         style={{
-                                            padding: '4px 8px',
-                                            borderRadius: '4px',
+                                            padding: '6px 32px 6px 12px',
+                                            borderRadius: '20px',
                                             border: 'none',
-                                            fontSize: '12px',
-                                            width: '120px',
-                                            outline: 'none'
+                                            fontSize: '13px',
+                                            width: '160px',
+                                            outline: 'none',
+                                            background: 'rgba(255, 255, 255, 0.2)',
+                                            color: 'white',
+                                            backdropFilter: 'blur(4px)'
                                         }}
                                         onBlur={() => { if (!chatSearchQuery) setIsChatSearchOpen(false); }}
                                     />
                                     <MdClose
                                         style={{
                                             position: 'absolute',
-                                            right: '4px',
-                                            top: '50%',
-                                            transform: 'translateY(-50%)',
+                                            right: '10px',
                                             cursor: 'pointer',
-                                            color: '#64748b',
-                                            fontSize: '14px'
+                                            color: 'rgba(255, 255, 255, 0.8)',
+                                            fontSize: '16px'
                                         }}
                                         onClick={() => { setChatSearchQuery(""); setIsChatSearchOpen(false); }}
                                     />
                                 </div>
                             ) : (
-                                <MdSearch
-                                    style={{ color: 'white', fontSize: '20px', cursor: 'pointer', opacity: 0.8 }}
+                                <div
+                                    style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                                     onClick={() => setIsChatSearchOpen(true)}
-                                />
+                                >
+                                    <MdSearch style={{ color: 'white', fontSize: '20px' }} />
+                                </div>
                             )}
                         </div>
                     </div>
@@ -790,7 +855,7 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
                                                 if (parts.length > 1) {
                                                     const status = parts[1].replace('.', '').trim();
                                                     const statusMap = {
-                                                        "ToDo": "todo",
+                                                        "To Do": "to do",
                                                         "In Progress": "inProgress",
                                                         "Testing": "testing",
                                                         "Done": "done",
@@ -886,7 +951,9 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
                                                                     </div>
                                                                 )}
 
-                                                                <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.4' }}>{c.text}</div>
+                                                                <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.4' }}>
+                                                                    {renderHighlightedText(c.text, chatSearchQuery)}
+                                                                </div>
 
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', gap: '10px' }}>
                                                                     <span className="chat-meta" style={{ fontSize: '10px', opacity: 0.7 }}>
@@ -895,12 +962,12 @@ export default function PrintJobDetailsModal({ jobId, onClose, onUpdate }) {
                                                                     <div className="bubble-actions" style={{ display: 'flex', gap: '4px', opacity: 0.6 }}>
                                                                         {isMe && (
                                                                             <>
-                                                                                <IoPencil
-                                                                                    style={{ cursor: 'pointer', fontSize: '14px', color: '#007aff' }}
+                                                                                <HiPencilSquare
+                                                                                    style={{ cursor: 'pointer', fontSize: '16px', color: '#007aff' }}
                                                                                     onClick={() => { setEditingCommentId(c.id); setEditedCommentText(c.text); }}
                                                                                 />
-                                                                                <IoTrash
-                                                                                    style={{ cursor: 'pointer', fontSize: '14px', color: '#ff3b30' }}
+                                                                                <HiTrash
+                                                                                    style={{ cursor: 'pointer', fontSize: '16px', color: '#ff3b30' }}
                                                                                     onClick={() => handleDeleteComment(c.id)}
                                                                                 />
                                                                             </>

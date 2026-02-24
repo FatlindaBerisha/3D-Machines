@@ -26,7 +26,7 @@ namespace backend_app.Services
             _client = new Google.GenAI.Client();
         }
 
-        public async Task<string> GetChatResponseAsync(string message, int userId, string userRole, string inventoryContext = "")
+        public async Task<string> GetChatResponseAsync(string message, int userId, string userRole, string inventoryContext = "", string requestedLanguage = "en")
         {
             try 
             {
@@ -36,7 +36,7 @@ namespace backend_app.Services
                     return "Error: Gemini API Key is missing on server.";
                 }
 
-                System.Console.WriteLine($"Sending request to Gemini model 'gemini-2.5-flash-lite' for role '{userRole}'");
+                System.Console.WriteLine($"Sending request to Gemini model 'gemini-2.5-flash-lite' for role '{userRole}' in language '{requestedLanguage}'");
 
                 // 1. Fetch User Info and unfinished Print Jobs
                 string userDisplayName = "User";
@@ -115,17 +115,25 @@ namespace backend_app.Services
 {jobContext}
 ";
 
+                // Language mapping for footer note
+                string footerNote = "";
+                if (requestedLanguage == "en") footerNote = "\n\n* If you want 3D Machines to text in Shqip or German change the language at settings preference";
+                else if (requestedLanguage == "sq") footerNote = "\n\n* Nëse dëshironi që 3D Machines të shkruajë në Anglisht ose Gjermanisht, ndryshoni gjuhën te cilësimet e preferencave";
+                else if (requestedLanguage == "de") footerNote = "\n\n* Wenn Sie möchten, dass 3D Machines auf Englisch oder Albanisch schreibt, ändern Sie die Sprache in den Einstellungseinstellungen";
+
                 // 2. Build System Prompt
                 string systemPrompt = $@"You are MechBot, the AI Assistant for the '3D Machines' web application. 
                 Your goal is to help users navigate and use ALL features of this application.
                 DO NOT give generic advice about external software. ALWAYS focus on this app's features.
 
-                **CRITICAL LANGUAGE RULE**: Detect the language the user writes in and ALWAYS respond in that SAME language.
-                - Albanian (e.g., 'si te kyqem', 'prerja', 'cilësimet') → respond ONLY in Albanian. Use Albanian terms (e.g. 'Prerja'), DO NOT include German/English translations in parentheses.
-                - German (e.g., 'wie kann ich', 'schneiden', 'einstellungen') → respond ONLY in German.
-                - English → respond ONLY in English.
+                **CRITICAL LANGUAGE RULE**: 
+                The user's current dashboard language is: {requestedLanguage}.
+                YOU MUST ALWAYS respond in {requestedLanguage.ToUpper()} regardless of what language the user types in.
+                - If {requestedLanguage} is 'en' → Respond ONLY in English.
+                - If {requestedLanguage} is 'sq' → Respond ONLY in Albanian.
+                - If {requestedLanguage} is 'de' → Respond ONLY in German.
                 
-                **STRICTLY FORBIDDEN**: Do NOT mix languages. Do NOT say ""Prerja (Schneiden)"". Just say ""Prerja"".
+                **STRICTLY FORBIDDEN**: Do NOT mix languages. Do NOT say ""Prerja (Schneiden)"". Just say the word in the target language.
 
                 **KEYWORD MAPPING**:
                 - 'prerja/prerje/pres' (Albanian), 'schneiden' (German) = Cutting
@@ -146,7 +154,7 @@ namespace backend_app.Services
                 If the user asks 'what do you know about me', 'cfare di per mua', 'was weißt du über mich', or similar questions about their personal data:
                 1. Respond with ONLY their profile information from CURRENT USER PROFILE above.
                 2. List their name, email, phone, profession, gender, and role.
-                3. TRANSLATE ALL VALUES to the user's language:
+                3. TRANSLATE ALL VALUES to the current language ({requestedLanguage}):
                 - Translate profession (e.g., 'designer' → 'dizajner/e' in Albanian, 'Designer' in German)
                 - Translate gender (e.g., 'male' → 'mashkull', 'female' → 'femër')
                 - Translate role labels (e.g., 'admin' → 'administrator', 'user' → 'përdorues')
@@ -256,7 +264,6 @@ namespace backend_app.Services
                 Always guide users to the correct section based on their role.
                 If a USER asks about admin features, politely explain they don't have access.
                 Keep answers concise, friendly, and step-by-step when giving instructions.
-                ALWAYS respond in the SAME LANGUAGE as the user's question.
 
                 === NAVIGATION COMMANDS ===
                 **STRICT RULE**: ONLY navigate if the user EXPLICITLY commands to 'open', 'go to', 'show', or 'take me to' a page.
@@ -309,24 +316,67 @@ namespace backend_app.Services
                 User: 'Me dërgo te preferencat' (Send me to preferences)
                 Response: 'Me kënaqësi, këtu janë Preferencat tuaja. [[NAVIGATE:/dashboard/user/preferences]]'
                 (Make sure to use the correct path based on their role!)
+
+                **FINAL REMINDER**: ALWAYS respond in {requestedLanguage.ToUpper()}. {footerNote}
                 ";
 
                 string fullPrompt = systemPrompt + "\n\nUser Question: " + message;
-                
-                var response = await _client.Models.GenerateContentAsync(
-                    model: "gemini-2.5-flash-lite",
-                    contents: fullPrompt
-                );
+
+                // Model fallback chain: try from cheapest to most capable
+                string[] fallbackModels = {
+                    "gemini-2.5-flash-lite",
+                    "gemini-2.0-flash",
+                    "gemini-1.5-pro"
+                };
+
+                Google.GenAI.Types.GenerateContentResponse response = null;
+                string usedModel = null;
+
+                foreach (var modelName in fallbackModels)
+                {
+                    try
+                    {
+                        System.Console.WriteLine($"Trying model: {modelName}");
+                        response = await _client.Models.GenerateContentAsync(
+                            model: modelName,
+                            contents: fullPrompt
+                        );
+                        usedModel = modelName;
+                        System.Console.WriteLine($"Successfully received response from {modelName}.");
+                        break; // success — stop trying fallbacks
+                    }
+                    catch (System.Exception modelEx)
+                    {
+                        string errorMsg = modelEx.Message.ToLower();
+                        bool isQuotaOrUnavailable = errorMsg.Contains("quota") 
+                            || errorMsg.Contains("rate") 
+                            || errorMsg.Contains("limit") 
+                            || errorMsg.Contains("429") 
+                            || errorMsg.Contains("503") 
+                            || errorMsg.Contains("unavailable")
+                            || errorMsg.Contains("resource_exhausted");
+
+                        if (isQuotaOrUnavailable)
+                        {
+                            System.Console.WriteLine($"Model {modelName} hit quota/limit, trying next fallback. Error: {modelEx.Message}");
+                            continue;
+                        }
+                        else
+                        {
+                            // Non-quota error (bad prompt, auth, etc) — rethrow immediately
+                            throw;
+                        }
+                    }
+                }
 
                 if (response?.Candidates == null || response.Candidates.Count == 0)
                 {
-                    System.Console.WriteLine("WARNING: Received empty response candidates from Gemini.");
-                    return "No response from AI.";
+                    System.Console.WriteLine("WARNING: All models exhausted or returned empty response.");
+                    return "I'm currently unavailable due to high demand. Please try again in a moment.";
                 }
 
                 var part = response.Candidates[0]?.Content?.Parts?[0];
                 var text = part?.Text ?? "Empty response.";
-                System.Console.WriteLine("Successfully received response from Gemini.");
                 return text;
             }
             catch (System.Exception ex)

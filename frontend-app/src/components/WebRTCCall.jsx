@@ -375,7 +375,7 @@ const WebRTCCall = ({
                             </div>
                         </div>
 
-                        <p style={{ fontSize: 22, fontWeight: 800, margin: "0 0 6px", zIndex: 2 }}>
+                        <p style={{ fontSize: 22, fontWeight: 800, margin: "0 0 6px", zIndex: 2, color: "white" }}>
                             {callerLabel}
                         </p>
                         <p style={{ fontSize: 12, color: C.textMuted, letterSpacing: 2, zIndex: 2 }}>
@@ -456,8 +456,8 @@ const WebRTCCall = ({
 
             {/* Name below frame */}
             <div style={{ textAlign: "center", marginTop: 16 }}>
-                <h2 style={{ margin: "0 0 4px", fontSize: 19, fontWeight: 800, letterSpacing: 0.3 }}>
-                    {callerLabel}
+                <h2 style={{ margin: "0 0 4px", fontSize: 19, fontWeight: 800, letterSpacing: 0.3, color: "white" }}>
+                    {jobName || callerLabel}
                 </h2>
                 <p style={{ margin: 0, fontSize: 11, color: C.textMuted, letterSpacing: 2, textTransform: "uppercase" }}>
                     {isIncoming ? t('webRTC.overlays.incomingVideoCall') : t('webRTC.overlays.outgoingVideoCall')}

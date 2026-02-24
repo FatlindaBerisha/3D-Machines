@@ -60,6 +60,8 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers = config.headers || {};
     config.headers["Authorization"] = `Bearer ${token}`;
+  } else {
+    console.warn("Axios Request: No token found in storage for URL:", config.url);
   }
   return config;
 });

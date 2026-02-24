@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { getUser } from "../../utils/storage";
@@ -10,6 +10,7 @@ import "../styles/Layout.css";
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const [role, setRole] = useState(null);
 
@@ -34,6 +35,10 @@ export default function DashboardLayout() {
 
   if (!role) return null;
 
+  // Determine if content should be centered
+  const isDashboard = location.pathname === "/dashboard/admin" || location.pathname === "/dashboard/user";
+  const contentClass = isDashboard ? "content" : "content centered-content";
+
   return (
     <div className="dashboard-layout">
       <Topbar />
@@ -41,7 +46,7 @@ export default function DashboardLayout() {
       <aside>
         <Sidebar role={role} />
       </aside>
-      <main className="content">
+      <main className={contentClass}>
         <Outlet />
       </main>
     </div>

@@ -1,0 +1,93 @@
+﻿using backend_app.Data;
+using backend_app.Models;
+using backend_app.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+
+namespace backend_app.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class PrintController : ControllerBase
+    {
+        private readonly PrintService _printService;
+
+        public PrintController(PrintService printService)
+        {
+            _printService = printService;
+        }
+
+        // GET: api/Print
+        [Authorize]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<PrintDto>>> GetPrints()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            if (isAdmin)
+                return Ok(await _printService.GetAllPrintsForAdminAsync());
+            else
+                return Ok(await _printService.GetPrintsForUserAsync(userId));
+        }
+
+        // GET: api/Print/5
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<PrintDto>> GetPrint(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            var print = await _printService.GetPrintByIdAsync(id, userId, isAdmin);
+            if (print == null)
+                return NotFound();
+
+            return Ok(print);
+        }
+
+        // POST: api/Print
+        [Authorize(Roles = "User")]
+        [HttpPost]
+        public async Task<ActionResult<PrintDto>> CreatePrint(PrintCreateDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var created = await _printService.CreatePrintAsync(dto, userId);
+            return CreatedAtAction(nameof(GetPrint), new { id = created.Id }, created);
+        }
+
+        // PUT: api/Print/5
+        [Authorize(Roles = "User")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdatePrint(int id, PrintUpdateDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _printService.UpdatePrintAsync(id, dto, userId);
+            if (!result)
+                return NotFound();
+            return NoContent();
+        }
+
+        // DELETE: api/Print/5
+        [Authorize(Roles = "User")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePrint(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _printService.DeletePrintAsync(id, userId);
+            if (!result)
+                return NotFound();
+            return NoContent();
+        }
+
+        // GET: api/Print/filaments
+        [Authorize]
+        [HttpGet("filaments")]
+        public async Task<ActionResult<IEnumerable<object>>> GetFilaments()
+        {
+            return Ok(await _printService.GetFilamentsAsync());
+        }
+    }
+}

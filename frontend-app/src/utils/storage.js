@@ -46,4 +46,5 @@ export function clearAuth() {
 
 export const removeAuth = clearAuth;
 
-export default { getToken, getRefreshToken, setAuth, clearAuth, getUser, removeAuth };
+const storage = { getToken, getRefreshToken, setAuth, clearAuth, getUser, removeAuth };
+export default storage;

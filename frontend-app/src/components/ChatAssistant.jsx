@@ -8,7 +8,7 @@ import { CHAT_URL } from '../config';
 
 const ChatAssistant = () => {
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user } = useContext(UserContext); // Get user from context
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
@@ -88,7 +88,10 @@ const ChatAssistant = () => {
                     'Content-Type': 'application/json',
                     'Authorization': token ? `Bearer ${token}` : ''
                 },
-                body: JSON.stringify({ message: userMessage.text }),
+                body: JSON.stringify({
+                    message: userMessage.text,
+                    language: i18n.language
+                }),
             });
 
             if (!response.ok) {

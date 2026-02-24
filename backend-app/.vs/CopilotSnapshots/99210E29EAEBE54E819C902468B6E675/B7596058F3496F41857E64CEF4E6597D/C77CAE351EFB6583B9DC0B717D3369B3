@@ -1,0 +1,151 @@
+﻿using backend_app.Data;
+using backend_app.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace backend_app.Services
+{
+    public class PrintService
+    {
+        private readonly AppDbContext _context;
+
+        public PrintService(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        // Returns all prints for a specific user
+        public async Task<IEnumerable<PrintDto>> GetPrintsForUserAsync(string userId)
+        {
+            return await _context.Prints
+                .Include(p => p.Filament)
+                .Where(p => p.UserId == userId)
+                .Select(p => new PrintDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    PrintDate = p.PrintDate,
+                    Duration = p.Duration,
+                    TimeTaken = p.TimeTaken,
+                    Status = p.Status,
+                    FilamentId = p.FilamentId,
+                    FilamentName = p.Filament.Name
+                })
+                .ToListAsync();
+        }
+
+        // Returns all prints for admin, including user info
+        public async Task<IEnumerable<PrintDto>> GetAllPrintsForAdminAsync()
+        {
+            return await _context.Prints
+                .Include(p => p.Filament)
+                .Include(p => p.User) // Assumes Print has a User navigation property
+                .Select(p => new PrintDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    PrintDate = p.PrintDate,
+                    Duration = p.Duration,
+                    TimeTaken = p.TimeTaken,
+                    Status = p.Status,
+                    FilamentId = p.FilamentId,
+                    FilamentName = p.Filament.Name,
+                    UserId = p.UserId,
+                    UserName = p.User != null ? p.User.UserName : null
+                })
+                .ToListAsync();
+        }
+
+        // Returns a specific print by ID
+        public async Task<PrintDto?> GetPrintByIdAsync(int id, string userId, bool isAdmin)
+        {
+            var query = _context.Prints.Include(p => p.Filament).Include(p => p.User).AsQueryable();
+            if (!isAdmin)
+                query = query.Where(p => p.UserId == userId);
+
+            var p = await query.FirstOrDefaultAsync(p => p.Id == id);
+            if (p == null) return null;
+
+            return new PrintDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                PrintDate = p.PrintDate,
+                Duration = p.Duration,
+                TimeTaken = p.TimeTaken,
+                Status = p.Status,
+                FilamentId = p.FilamentId,
+                FilamentName = p.Filament.Name,
+                UserId = isAdmin ? p.UserId : null,
+                UserName = isAdmin ? p.User?.UserName : null
+            };
+        }
+
+        // Creates a new print
+        public async Task<PrintDto> CreatePrintAsync(PrintCreateDto dto, string userId)
+        {
+            var print = new Print
+            {
+                Name = dto.Name,
+                PrintDate = dto.PrintDate,
+                Duration = dto.Duration,
+                Status = dto.Status,
+                FilamentId = dto.FilamentId,
+                UserId = userId
+            };
+            _context.Prints.Add(print);
+            await _context.SaveChangesAsync();
+
+            var filament = await _context.Filaments.FindAsync(dto.FilamentId);
+
+            return new PrintDto
+            {
+                Id = print.Id,
+                Name = print.Name,
+                PrintDate = print.PrintDate,
+                Duration = print.Duration,
+                Status = print.Status,
+                FilamentId = print.FilamentId,
+                FilamentName = filament?.Name ?? ""
+            };
+        }
+
+        // Updates an existing print
+        public async Task<bool> UpdatePrintAsync(int id, PrintUpdateDto dto, string userId)
+        {
+            var print = await _context.Prints.FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+            if (print == null) return false;
+
+            print.Name = dto.Name;
+            print.PrintDate = dto.PrintDate;
+            print.Duration = dto.Duration;
+            print.TimeTaken = dto.TimeTaken;
+            print.Status = dto.Status;
+            print.FilamentId = dto.FilamentId;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Deletes a print
+        public async Task<bool> DeletePrintAsync(int id, string userId)
+        {
+            var print = await _context.Prints.FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+            if (print == null) return false;
+
+            _context.Prints.Remove(print);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Returns all filaments
+        public async Task<IEnumerable<object>> GetFilamentsAsync()
+        {
+            return await _context.Filaments
+                .Select(f => new { f.Id, f.Name })
+                .ToListAsync();
+        }
+    }
+}

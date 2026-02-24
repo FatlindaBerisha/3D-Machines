@@ -67,7 +67,7 @@ namespace backend_app.Controllers
                     inventoryContext += "\nNo cutting materials currently in stock.\n";
                 }
 
-                var response = await _geminiService.GetChatResponseAsync(request.Message, userId, userRole, inventoryContext);
+                var response = await _geminiService.GetChatResponseAsync(request.Message, userId, userRole, inventoryContext, request.Language);
                 return Ok(new { response });
             }
             catch (System.Exception ex)
@@ -81,5 +81,6 @@ namespace backend_app.Controllers
     public class ChatRequest
     {
         public string Message { get; set; }
+        public string Language { get; set; }
     }
 }

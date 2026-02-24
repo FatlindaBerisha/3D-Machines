@@ -1,0 +1,15 @@
+{
+  "short_name": "3DMachine",
+  "name": "3D Machine - Access Portal",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "type": "image/png",
+      "sizes": "64x64 32x32 24x24 16x16"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#4374ba",
+  "background_color": "#ffffff"
+}

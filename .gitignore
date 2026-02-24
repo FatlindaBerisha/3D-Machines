@@ -1,44 +1,35 @@
-# React (frontend-app)
-frontend-app/node_modules/
-frontend-app/build/
-frontend-app/.env
-frontend-app/.env.local
-frontend-app/.env.*.local
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# .NET (backend-app)
-backend-app/bin/
-backend-app/obj/
-backend-app/*.user
-backend-app/*.vspscc
-backend-app/*.vssscc
-backend-app/*.suo
-backend-app/*.pdb
-backend-app/*.cache
-backend-app/*.log
-backend-app/appsettings.json
-backend-app/appsettings.Development.json
+# Testing
+/coverage
 
-# Visual Studio / Editor files
-.vscode/
-.vs/
-*.code-workspace
-*.sln
-*.user
-*.userosscache
-*.suo
-*.tmp
-*.temp
+# Production
+/build
 
-# System files
+# Misc
 .DS_Store
-Thumbs.db
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-implementation.txt
+# IDEs
+.vscode/
+.idea/
 
-.env
+# Backend
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+appsettings.Development.json
+appsettings.json

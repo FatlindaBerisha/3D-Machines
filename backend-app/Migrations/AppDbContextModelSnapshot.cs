@@ -17,7 +17,7 @@ namespace backend_app.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.22")
+                .HasAnnotation("ProductVersion", "8.0.24")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -244,6 +244,31 @@ namespace backend_app.Migrations
                     b.ToTable("CutJobParticipants");
                 });
 
+            modelBuilder.Entity("backend_app.Models.Ekipi", b =>
+                {
+                    b.Property<int>("EkipiID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EkipiID"));
+
+                    b.Property<string>("EkipiName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("GaraID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumriPjesetarevde")
+                        .HasColumnType("int");
+
+                    b.HasKey("EkipiID");
+
+                    b.HasIndex("GaraID");
+
+                    b.ToTable("Ekipi");
+                });
+
             modelBuilder.Entity("backend_app.Models.Filament", b =>
                 {
                     b.Property<int>("Id")
@@ -274,6 +299,27 @@ namespace backend_app.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Filaments");
+                });
+
+            modelBuilder.Entity("backend_app.Models.Gara", b =>
+                {
+                    b.Property<int>("GaraID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GaraID"));
+
+                    b.Property<string>("GaraName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LlojiGares")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("GaraID");
+
+                    b.ToTable("Gara");
                 });
 
             modelBuilder.Entity("backend_app.Models.Material", b =>
@@ -491,6 +537,17 @@ namespace backend_app.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("backend_app.Models.Ekipi", b =>
+                {
+                    b.HasOne("backend_app.Models.Gara", "Gara")
+                        .WithMany("Ekipi")
+                        .HasForeignKey("GaraID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Gara");
+                });
+
             modelBuilder.Entity("backend_app.Models.PrintJob", b =>
                 {
                     b.HasOne("backend_app.Models.Filament", "Filament")
@@ -553,6 +610,11 @@ namespace backend_app.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("backend_app.Models.Gara", b =>
+                {
+                    b.Navigation("Ekipi");
                 });
 
             modelBuilder.Entity("backend_app.Models.PrintJob", b =>

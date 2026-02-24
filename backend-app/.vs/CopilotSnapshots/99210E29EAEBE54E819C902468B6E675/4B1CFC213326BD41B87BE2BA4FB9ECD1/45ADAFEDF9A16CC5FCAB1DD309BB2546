@@ -1,0 +1,169 @@
+﻿using backend_app.Models;
+using backend_app.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+
+namespace backend_app.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class PrintController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+
+        public PrintController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        // GET: api/Print
+        [Authorize]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<PrintDto>>> GetPrints()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            var query = _context.Prints
+                .Include(p => p.Filament)
+                .Include(p => p.User)
+                .AsQueryable();
+
+            if (!isAdmin)
+                query = query.Where(p => p.UserId == userId);
+
+            var prints = await query
+                .Select(p => new PrintDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    PrintDate = p.PrintDate,
+                    Duration = p.Duration,
+                    TimeTaken = p.TimeTaken,
+                    Status = p.Status,
+                    FilamentId = p.FilamentId,
+                    FilamentName = p.Filament.Name,
+                    UserId = isAdmin ? p.UserId : null,
+                    UserName = isAdmin ? p.User.UserName : null
+                })
+                .ToListAsync();
+
+            return Ok(prints);
+        }
+
+        // GET: api/Print/5
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<PrintDto>> GetPrint(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            var query = _context.Prints
+                .Include(p => p.Filament)
+                .Include(p => p.User)
+                .AsQueryable();
+
+            if (!isAdmin)
+                query = query.Where(p => p.UserId == userId);
+
+            var p = await query.FirstOrDefaultAsync(p => p.Id == id);
+            if (p == null) return NotFound();
+
+            var dto = new PrintDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                PrintDate = p.PrintDate,
+                Duration = p.Duration,
+                TimeTaken = p.TimeTaken,
+                Status = p.Status,
+                FilamentId = p.FilamentId,
+                FilamentName = p.Filament.Name,
+                UserId = isAdmin ? p.UserId : null,
+                UserName = isAdmin ? p.User?.UserName : null
+            };
+            return Ok(dto);
+        }
+
+        // POST: api/Print
+        [Authorize(Roles = "User")]
+        [HttpPost]
+        public async Task<ActionResult<PrintDto>> CreatePrint(PrintCreateDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var print = new Print
+            {
+                Name = dto.Name,
+                PrintDate = dto.PrintDate,
+                Duration = dto.Duration,
+                Status = dto.Status,
+                FilamentId = dto.FilamentId,
+                UserId = userId
+            };
+            _context.Prints.Add(print);
+            await _context.SaveChangesAsync();
+
+            var filament = await _context.Filaments.FindAsync(dto.FilamentId);
+
+            var result = new PrintDto
+            {
+                Id = print.Id,
+                Name = print.Name,
+                PrintDate = print.PrintDate,
+                Duration = print.Duration,
+                Status = print.Status,
+                FilamentId = print.FilamentId,
+                FilamentName = filament?.Name ?? ""
+            };
+            return CreatedAtAction(nameof(GetPrint), new { id = print.Id }, result);
+        }
+
+        // PUT: api/Print/5
+        [Authorize(Roles = "User")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdatePrint(int id, PrintUpdateDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var print = await _context.Prints.FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+            if (print == null) return NotFound();
+
+            print.Name = dto.Name;
+            print.PrintDate = dto.PrintDate;
+            print.Duration = dto.Duration;
+            print.TimeTaken = dto.TimeTaken;
+            print.Status = dto.Status;
+            print.FilamentId = dto.FilamentId;
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // DELETE: api/Print/5
+        [Authorize(Roles = "User")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePrint(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var print = await _context.Prints.FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+            if (print == null) return NotFound();
+
+            _context.Prints.Remove(print);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // GET: api/Print/filaments
+        [Authorize]
+        [HttpGet("filaments")]
+        public async Task<ActionResult<IEnumerable<object>>> GetFilaments()
+        {
+            var filaments = await _context.Filaments
+                .Select(f => new { f.Id, f.Name })
+                .ToListAsync();
+            return Ok(filaments);
+        }
+    }
+}

@@ -300,7 +300,7 @@ export default function AdminCutLogs() {
 
     // FORMATTERS
     function getStatusTranslation(status) {
-        if (status === "Pending") return t('kanban.todo') || "ToDo";
+        if (status === "Pending") return t('kanban.todo') || "To Do";
         if (status === "In Progress") return t('kanban.inProgress') || "In Progress";
         if (status === "Testing") return t('kanban.testing') || "Testing";
         if (status === "Completed") return t('kanban.done') || "Done";

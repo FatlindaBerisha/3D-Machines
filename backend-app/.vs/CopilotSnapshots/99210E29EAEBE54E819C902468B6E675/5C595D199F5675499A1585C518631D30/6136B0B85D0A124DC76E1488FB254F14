@@ -1,0 +1,19 @@
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace backend_app.Models
+{
+    public class User
+    {
+        [Key]
+        public string Id { get; set; } = null!;
+
+        [Required]
+        [StringLength(100)]
+        public string UserName { get; set; } = null!;
+
+        // Add other properties as needed (e.g., Email, PasswordHash, etc.)
+
+        public ICollection<Print>? Prints { get; set; }
+    }
+}

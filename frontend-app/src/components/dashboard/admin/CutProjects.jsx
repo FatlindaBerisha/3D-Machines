@@ -191,47 +191,49 @@ export default function AdminCutProjects() {
                 <p className="no-filaments-message">{t('projects.noProjects')}</p>
             ) : (
                 <>
-                    <table className="filament-table">
-                        <thead>
-                            <tr>
-                                <th style={{ width: "200px" }}>{t('projects.moduleName')}</th>
-                                <th style={{ width: "400px" }}>{t('projects.file')}</th>
-                                <th>{t('projects.downloads')}</th>
-                                <th style={{ width: "80px", textAlign: "center" }}>{t('common.edit')}</th>
-                                <th style={{ width: "80px", textAlign: "center" }}>{t('common.delete')}</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {paginatedProjects.map((p) => (
-                                <tr key={p.id}>
-                                    <td>{p.moduleName}</td>
-                                    <td>{p.fileName}</td>
-                                    <td>{p.downloadCount}</td>
-
-                                    <td style={{ textAlign: "center" }}>
-                                        <button
-                                            onClick={() => openEditModal(p)}
-                                            className="edit"
-                                            title="Edit Project"
-                                        >
-                                            <MdEdit />
-                                        </button>
-                                    </td>
-
-                                    <td style={{ textAlign: "center" }}>
-                                        <button
-                                            onClick={() => handleDelete(p.id)}
-                                            className="delete"
-                                            title="Delete Project"
-                                        >
-                                            <MdDelete />
-                                        </button>
-                                    </td>
+                    <div className="filament-table-wrapper">
+                        <table className="filament-table">
+                            <thead>
+                                <tr>
+                                    <th style={{ width: "200px" }}>{t('projects.moduleName')}</th>
+                                    <th style={{ width: "400px" }}>{t('projects.file')}</th>
+                                    <th>{t('projects.downloads')}</th>
+                                    <th style={{ width: "80px", textAlign: "center" }}>{t('common.edit')}</th>
+                                    <th style={{ width: "80px", textAlign: "center" }}>{t('common.delete')}</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+
+                            <tbody>
+                                {paginatedProjects.map((p) => (
+                                    <tr key={p.id}>
+                                        <td>{p.moduleName}</td>
+                                        <td>{p.fileName}</td>
+                                        <td>{p.downloadCount}</td>
+
+                                        <td style={{ textAlign: "center" }}>
+                                            <button
+                                                onClick={() => openEditModal(p)}
+                                                className="edit"
+                                                title="Edit Project"
+                                            >
+                                                <MdEdit />
+                                            </button>
+                                        </td>
+
+                                        <td style={{ textAlign: "center" }}>
+                                            <button
+                                                onClick={() => handleDelete(p.id)}
+                                                className="delete"
+                                                title="Delete Project"
+                                            >
+                                                <MdDelete />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
                     {totalPages > 1 && (
                         <div

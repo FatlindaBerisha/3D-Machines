@@ -118,6 +118,7 @@
         "removeParticipantConfirm": "A jeni të sigurt që dëshironi ta hiqni këtë pjesëmarrës?"
     },
     "dashboard": {
+        "welcome": "Mirë se u ktheve, {{name}}! 👋",
         "welcomeUser": "Mirë se vini Përdorues në Panel",
         "welcomeAdmin": "Mirë se vini Administrator në Panel",
         "statistics": "Statistikat",
@@ -132,7 +133,19 @@
         "cutStatusDist": "Shpërndarja e Statusit të Prerjeve",
         "noData": "Nuk ka të dhëna",
         "activeTasks": "Detyra Aktive",
-        "myStats": "Statistikat e Mia"
+        "myStats": "Statistikat e Mia",
+        "systemActivity": "Aktiviteti i Sistemit",
+        "last6Months": "6 Muajt e Fundit",
+        "overallStatus": "Statusi i Përgjithshëm",
+        "teamMembers": "Anëtarët e Ekipit",
+        "jobOverview": "Përmbledhja e Punës",
+        "allJobsCombined": "Të Gjitha Punët e Kombinuara",
+        "totalJobs": "Gjithsej Punë",
+        "recentJobs": "Punët e Fundit",
+        "totalCapacity": "Kapaciteti Total",
+        "jobsDone": "Punë të Kryera",
+        "systemHealth": "Shëndeti i Sistemit",
+        "myActivity": "Aktiviteti Im"
     },
     "preferences": {
         "title": "Preferencat",
@@ -279,7 +292,11 @@
         "preparing": "Duke Përgatitur",
         "printing": "Duke Printuar",
         "postProcessing": "Përpunim Përfundimtar",
-        "failed": "Dështuar"
+        "failed": "Dështuar",
+        "search": "Kërko...",
+        "total": "Total",
+        "loading": "Duke u ngarkuar",
+        "seeAll": "Shiko të gjitha"
     },
     "printWorkflow": {
         "statuses": {

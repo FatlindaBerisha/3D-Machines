@@ -1,0 +1,63 @@
+﻿using backend_app.Data;
+using backend_app.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace backend_app.Services
+{
+    public class PrintService
+    {
+        private readonly AppDbContext _context;
+
+        public PrintService(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        // Returns all prints for a specific user
+        public async Task<IEnumerable<PrintDto>> GetPrintsForUserAsync(string userId)
+        {
+            return await _context.Prints
+                .Include(p => p.Filament)
+                .Where(p => p.UserId == userId)
+                .Select(p => new PrintDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    PrintDate = p.PrintDate,
+                    Duration = p.Duration,
+                    TimeTaken = p.TimeTaken,
+                    Status = p.Status,
+                    FilamentId = p.FilamentId,
+                    FilamentName = p.Filament.Name
+                })
+                .ToListAsync();
+        }
+
+        // Returns all prints for admin, including user info
+        public async Task<IEnumerable<PrintDto>> GetAllPrintsForAdminAsync()
+        {
+            return await _context.Prints
+                .Include(p => p.Filament)
+                .Include(p => p.User) // Assumes Print has a User navigation property
+                .Select(p => new PrintDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    PrintDate = p.PrintDate,
+                    Duration = p.Duration,
+                    TimeTaken = p.TimeTaken,
+                    Status = p.Status,
+                    FilamentId = p.FilamentId,
+                    FilamentName = p.Filament.Name,
+                    UserId = p.UserId,
+                    UserName = p.User != null ? p.User.UserName : null
+                })
+                .ToListAsync();
+        }
+
+        // ...other methods (GetPrintByIdAsync, CreatePrintAsync, UpdatePrintAsync, DeletePrintAsync, GetFilamentsAsync)...
+    }
+}

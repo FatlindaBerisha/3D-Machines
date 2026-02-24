@@ -285,7 +285,7 @@ export default function PrintLog() {
   // -------------------------------------------------------
   function getStatusTranslation(status) {
     // Hardcoded fallback if keys missing
-    if (status === "Pending") return t('kanban.todo') || "ToDo";
+    if (status === "Pending") return t('kanban.todo') || "To Do";
     if (status === "In Progress") return t('kanban.inProgress') || "In Progress";
     if (status === "Testing") return t('kanban.testing') || "Testing";
     if (status === "Completed") return t('kanban.done') || "Done";
@@ -487,7 +487,7 @@ export default function PrintLog() {
                         </div>
 
                         {/* Only show edit/delete if status is Pending (or if user is owner and allowed via logic, but keeping simple for now based on previous code) */}
-                        {job.status === "Pending" && (
+                        {(job.status === "Pending" || job.status === "Waiting") && (
                           <div className="card-actions" style={{ display: 'flex', gap: '4px' }}>
                             <button onClick={(e) => { e.stopPropagation(); showDeleteConfirm(job.id); }} className="icon-btn delete">
                               <FaTrash />

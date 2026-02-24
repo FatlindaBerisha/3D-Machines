@@ -1,0 +1,96 @@
+ip address: [IP_ADDRESS]
+turn off firewall for both computers
+chrome search this chrome://flags/#unsafely-treat-insecure-origin-as-secure and  enable it
+- you need to put http://[IP_ADDRESS] in the text box:3001
+also to enable a 3001 npm run do $env:PORT=3001; npm start
+
+
+
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=3DMachinesDB;Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
+  "SmtpSettings": {
+    "Server": "smtp.gmail.com",
+    "Port": 587,
+    "EnableSsl": true,
+    "Username": "fatlindab2019@gmail.com",
+    "Password": "bylmfwdjkhgpxuhe"
+  },
+  "JwtSettings": {
+    "SecretKey": "4d3398765732af2bfa5c7d3c16bdcdeccefa2c205bb888fcdf2cd580c6083a974d45bda617fff7f69b16594b93a44d9e7b60f49b1ce65154c39ce20f2ab45c45ecbc745f37c1248636f60839e9988342f2a78d650dc7b722202cee76c030dda10348fb53a07cf2a01ab8cc519dc0a724aa03113dc7c6d0840386591a47161ec877584b50029b82f79cb1a77d06b2a1e858fff8f3681342bb30f8b113085a756299478c31e18f34a36e5744e6f300f2ee73b62cc0c83df81aacad8aaf3a1a270eafefe0545346361c2daa9b4c18d28cd4b536626d7284f5f7b07f9ad631d750ab203c49636025260966b3a6a7ca7dc62402f7862a4739b4faf0cb1484a0fe53df"
+  },
+  "MongoSettings": {
+    "ConnectionString": "mongodb+srv://3dmachines:lB3nLKByWnme2viO@3dmachines.rxaocrx.mongodb.net/?appName=3DMachines",
+    "DatabaseName": "3DMachinesDB"
+  },
+  "Gemini": {
+    "ApiKey": "YOUR_GOOGLE_API_KEY"
+  }
+}
+
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=3DMachinesDB;Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
+  "SmtpSettings": {
+    "Server": "smtp.gmail.com",
+    "Port": 587,
+    "EnableSsl": true,
+    "Username": "YOUR_SMTP_USERNAME",
+    "Password": "YOUR_SMTP_PASSWORD"
+  },
+  "JwtSettings": {
+    "SecretKey": "YOUR_JWT_SECRET_KEY"
+  },
+  "MongoSettings": {
+    "ConnectionString": "YOUR_MONGODB_CONNECTION_STRING",
+    "DatabaseName": "YOUR_MONGODB_DATABASE_NAME"
+  },
+  "Gemini": {
+    "ApiKey": "YOUR_GEMINI_API_KEY"
+  }
+}
+
+
+dotnet ef migrations add AddGaraAndEkipi && dotnet ef database update
+dotnet ef migrations add AddGaraAndEkipi-v2
+dotnet ef database update
+Qishtu e bon me migru databazen
+te folder app.js i ki te komentume qka me ba tani te dashboard/admin jon faqet
+te backend eshte te appdbcontext backend/data
+te backend folder eshte te controllers, models
+
+per me fshi prej databzes
+dotnet ef database update AddMissingCutJobFields
+dotnet ef migrations remove
+
+
+Për t'i shtuar përsëri këto module (nëse kodi i Models/Controllers është gati), hapat janë këta:
+
+dotnet ef migrations add AddGaraAndEkipi-v3
+dotnet ef database update
+Përmbledhje e plotë (nëse e bën nga fillimi):
+Nëse ndonjëherë dëshiron ta bësh këtë në një projekt tjetër, hapat janë:
+
+Models: Krijo Gara.cs dhe Ekipi.cs te folderi Models.
+Context: Shto public DbSet<Gara> Gara { get; set; } dhe public DbSet<Ekipi> Ekipi { get; set; } te 
+AppDbContext.cs .
+Controllers: Krijo GaraController.cs dhe EkipiController.cs për të mundësuar API-n. Database Migration: Run hapat 1 dhe 2 më lart për të krijuar tabelat.
+Frontend: Shto komponentet .jsx dhe regjistroi ato te  App.js .

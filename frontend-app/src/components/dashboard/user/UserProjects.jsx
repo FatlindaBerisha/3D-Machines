@@ -120,34 +120,36 @@ export default function UserProjects() {
         <p className="no-filaments-message">{t('projects.noProjects')}</p>
       ) : (
         <>
-          <table className="filament-table">
-            <thead>
-              <tr>
-                <th>{t('projects.moduleName')}</th>
-                <th>{t('projects.file')}</th>
-                <th>{t('projects.downloads')}</th>
-                <th className="download-header">{t('projects.downloads')}</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {paginatedProjects.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.moduleName}</td>
-                  <td>{p.fileName}</td>
-                  <td>{p.downloadCount}</td>
-                  <td>
-                    <button
-                      onClick={() => handleDownload(p.id, p.fileName)}
-                      className="download"
-                    >
-                      <MdDownload style={{ fontSize: 22, marginRight: 6 }} />
-                    </button>
-                  </td>
+          <div className="filament-table-wrapper">
+            <table className="filament-table">
+              <thead>
+                <tr>
+                  <th>{t('projects.moduleName')}</th>
+                  <th>{t('projects.file')}</th>
+                  <th>{t('projects.downloads')}</th>
+                  <th className="download-header">{t('projects.downloads')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {paginatedProjects.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.moduleName}</td>
+                    <td>{p.fileName}</td>
+                    <td>{p.downloadCount}</td>
+                    <td>
+                      <button
+                        onClick={() => handleDownload(p.id, p.fileName)}
+                        className="download"
+                      >
+                        <MdDownload style={{ fontSize: 22, marginRight: 6 }} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {/* Pagination */}
           {totalPages > 1 && (

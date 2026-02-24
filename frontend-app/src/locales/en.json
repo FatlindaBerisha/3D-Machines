@@ -98,6 +98,7 @@
         "cutFiles": "Cut Files"
     },
     "dashboard": {
+        "welcome": "Welcome back, {{name}}! 👋",
         "welcomeUser": "Welcome User to Dashboard",
         "welcomeAdmin": "Welcome Admin to Dashboard",
         "statistics": "Statistics",
@@ -112,7 +113,19 @@
         "cutStatusDist": "Cut Status Distribution",
         "noData": "No data available",
         "activeTasks": "Active Tasks",
-        "myStats": "My Statistics"
+        "myStats": "My Statistics",
+        "systemActivity": "System Activity",
+        "last6Months": "Last 6 Months",
+        "overallStatus": "Overall Status",
+        "teamMembers": "Team Members",
+        "jobOverview": "Job Overview",
+        "allJobsCombined": "All Jobs Combined",
+        "totalJobs": "Total Jobs",
+        "recentJobs": "Recent Jobs",
+        "totalCapacity": "Total Capacity",
+        "jobsDone": "Jobs Done",
+        "systemHealth": "System Health",
+        "myActivity": "My Activity"
     },
     "preferences": {
         "title": "Preferences",
@@ -259,7 +272,11 @@
         "preparing": "Preparing",
         "printing": "Printing",
         "postProcessing": "Post-Processing",
-        "failed": "Failed"
+        "failed": "Failed",
+        "search": "Search...",
+        "total": "Total",
+        "loading": "Loading",
+        "seeAll": "See All"
     },
     "task": {
         "createdOn": "Created on",
@@ -371,7 +388,7 @@
         }
     },
     "kanban": {
-        "todo": "ToDo",
+        "todo": "To Do",
         "inProgress": "In Progress",
         "testing": "Testing",
         "done": "Done",

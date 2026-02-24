@@ -1,0 +1,26 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace backend_app.Models.DTOs
+{
+    public class PrintUpdateDto
+    {
+        [Required]
+        [StringLength(100)]
+        public string Name { get; set; } = null!;
+
+        [Required]
+        public DateTime PrintDate { get; set; }
+
+        [Range(1, 10000)]
+        public int Duration { get; set; }
+
+        [Range(1, 10000)]
+        public int? TimeTaken { get; set; }
+
+        [StringLength(50)]
+        public string? Status { get; set; }
+
+        [Required]
+        public int FilamentId { get; set; }
+    }
+}

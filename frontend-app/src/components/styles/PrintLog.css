@@ -428,22 +428,6 @@
   /* SHORTER: Internal scroll after 1 card */
   padding: 10px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-}
-
-/* Custom Scrollbar for Webkit */
-.kanban-column-content::-webkit-scrollbar {
-  width: 5px;
-}
-
-.kanban-column-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.kanban-column-content::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
 }
 
 .kanban-column h3 span {
