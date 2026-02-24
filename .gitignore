@@ -33,3 +33,4 @@ obj/
 *.sln.docstates
 appsettings.Development.json
 appsettings.json
+implementation.txt
